@@ -107,9 +107,9 @@ function drivingText(a: string[], name: string): string {
   const num = parseInt(a[17]) + 1
   if (how == 'both') {
     return `${name} (${num})`
-  } else {
-    return `${name} (${how}: ${num})`
   }
+
+  return `${name} (${how}: ${num})`
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
