@@ -117,25 +117,23 @@ function createDrivingAssignments() {
   const outputSheet = createNamedSheet('Driving')
   const rd = responseData()
 
-  const scouts = rd.filter(a => !ADULTS.includes(a[3]))
   const adultsCamping = rd.filter(a => ADULTS.includes(a[3]))
-
+  const scouts = rd.filter(a => !ADULTS.includes(a[3]))
   const parentDrivers = scouts.filter(a => Object.keys(DRIVERS).includes(a[15]))
 
-  const driving: (string | null)[][] = []
   const drivers: (string | null)[] = adultsCamping
     .map(a => drivingText(a, a[2]))
     .concat(parentDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)))
   // add empty column at the start to reserve the first column for the scout names
   drivers.unshift(null)
 
-  driving.push(drivers)
-  const columns = drivers.length
+  let drivingData: (string | null)[][] = [drivers]
 
-  scouts.forEach(s => driving.push(paddedArray([s[2]], columns)))
+  const columns = drivers.length
+  drivingData = drivingData.concat(scouts.map(s => paddedArray([s[2]], columns)))
 
   const rows = scouts.length + 1
-  outputSheet.getRange(1, 1, rows, columns).setValues(driving)
+  outputSheet.getRange(1, 1, rows, columns).setValues(drivingData)
   outputSheet.autoResizeColumns(1, columns)
   outputSheet.getRange(2, 2, rows - 1, columns - 1).setHorizontalAlignment('center')
 }
