@@ -120,12 +120,12 @@ function createDrivingAssignments() {
   const scouts = rd.filter(a => !ADULTS.includes(a[3]))
   const adultsCamping = rd.filter(a => ADULTS.includes(a[3]))
 
-  const potentialDrivers = rd.filter(a => Object.keys(DRIVERS).includes(a[16]))
+  const parentDrivers = scouts.filter(a => Object.keys(DRIVERS).includes(a[15]))
 
   const driving: (string | null)[][] = []
   const drivers: (string | null)[] = adultsCamping
     .map(a => drivingText(a, a[2]))
-    .concat(potentialDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)))
+    .concat(parentDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)))
   // add empty column at the start to reserve the first column for the scout names
   drivers.unshift(null)
 
