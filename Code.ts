@@ -27,7 +27,7 @@ function createNamedSheet(name: string): GoogleAppsScript.Spreadsheet.Sheet {
   const activeSheet = SpreadsheetApp.getActiveSpreadsheet()
   let output = activeSheet.getSheetByName(name)
   if (output != null) {
-    activeSheet.deleteSheet(output)
+    output.setName(`${name} (old)`)
   }
 
   output = activeSheet.insertSheet()
