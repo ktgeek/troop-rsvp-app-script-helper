@@ -127,10 +127,10 @@ function createDrivingAssignments() {
   // add empty column at the start to reserve the first column for the scout names
   drivers.unshift(null)
 
-  let drivingData: (string | null)[][] = [drivers]
-
   const columns = drivers.length
-  drivingData = drivingData.concat(scouts.map(s => paddedArray([s[2]], columns)))
+  const drivingData: (string | null)[][] = [drivers].concat(
+    scouts.map(s => paddedArray([s[2]], drivers.length)),
+  )
 
   const rows = scouts.length + 1
   outputSheet.getRange(1, 1, rows, columns).setValues(drivingData)
