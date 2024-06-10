@@ -1,4 +1,4 @@
-const ADULTS = ['Adult Leader', 'Scouter Reserve']
+const ADULTS: string[] = ['Adult Leader', 'Scouter Reserve']
 
 const DRIVERS: {[id: string]: string} = {
   'Drive both ways': 'both',
@@ -101,6 +101,7 @@ function createOutingListing() {
     outputSheet.getRange(`A${base}:D${base + 11}`).setValues(rosterEntry)
   })
 }
+
 function drivingText(a: string[], name: string): string {
   const how = DRIVERS[a[15]]
   const num = parseInt(a[17]) + 1
