@@ -65,7 +65,7 @@ function createPatrolListing() {
     listing.push(patrolRow)
   })
 
-  const size = responseData.length + 1
+  const size = rd.length + 1
   outputSheet.getRange(`A1:E${size}`).setValues(listing)
   outputSheet.getRange('A1:E1').setFontWeight('bold').setHorizontalAlignment('center')
   outputSheet.setFrozenRows(1)
