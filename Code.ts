@@ -58,12 +58,11 @@ function createPatrolListing() {
 
   const listing: (string | null)[][] = [
     ['Scout', 'Patrol', 'Campout Patrol', 'PoResponsibility', 'Dietary Restrictions'],
+    ...rd.map(row => {
+      const campout_patrol = ADULTS.includes(row[3]) ? 'A' : null
+      return [row[2], row[3], campout_patrol, null, row[13]]
+    }),
   ]
-  rd.forEach(row => {
-    const campout_patrol = ADULTS.includes(row[3]) ? 'A' : null
-    const patrolRow = [row[2], row[3], campout_patrol, null, row[13]]
-    listing.push(patrolRow)
-  })
 
   const size = rd.length + 1
   outputSheet.getRange(`A1:E${size}`).setValues(listing)
@@ -122,16 +121,17 @@ function createDrivingAssignments() {
   const scouts = rd.filter(a => !ADULTS.includes(a[3]))
   const parentDrivers = scouts.filter(a => Object.keys(DRIVERS).includes(a[15]))
 
-  const drivers: (string | null)[] = adultsCamping
-    .map(a => drivingText(a, a[2]))
-    .concat(parentDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)))
-  // add empty column at the start to reserve the first column for the scout names
-  drivers.unshift(null)
+  const drivers: (string | null)[] = [
+    null,
+    ...adultsCamping.map(a => drivingText(a, a[2])),
+    ...parentDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)),
+  ]
 
   const columns = drivers.length
-  const drivingData: (string | null)[][] = [drivers].concat(
-    scouts.map(s => paddedArray([s[2]], drivers.length)),
-  )
+  const drivingData: (string | null)[][] = [
+    drivers,
+    ...scouts.map(s => paddedArray([s[2]], drivers.length)),
+  ]
 
   const rows = scouts.length + 1
   outputSheet.getRange(1, 1, rows, columns).setValues(drivingData)
