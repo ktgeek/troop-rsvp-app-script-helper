@@ -83,19 +83,20 @@ function createOutingListing() {
   responseData().forEach((row, i) => {
     const base = 13 * i + 1
 
-    const rosterEntry: string[][] = []
-    rosterEntry.push(paddedArray(['Scout', row[2], row[3]]))
-    rosterEntry.push(paddedArray(['Allergies', row[12]]))
-    rosterEntry.push(paddedArray(['Dietary Restrictions', row[13]]))
-    rosterEntry.push(Array(4))
-    rosterEntry.push(paddedArray(['Primary Contact', row[6], row[7]]))
-    rosterEntry.push(paddedArray(['Secondary Contact', row[8], row[9]]))
-    rosterEntry.push(Array(4))
-    rosterEntry.push(paddedArray(["Physician's Name", row[10], 'Phone', row[11]]))
-    rosterEntry.push(Array(4))
-    rosterEntry.push(paddedArray(['Additional Notes', row[19]]))
-    rosterEntry.push(Array(4))
-    rosterEntry.push(paddedArray(['--------------------']))
+    const rosterEntry: string[][] = [
+      paddedArray(['Scout', row[2], row[3]]),
+      paddedArray(['Allergies', row[12]]),
+      paddedArray(['Dietary Restrictions', row[13]]),
+      Array(4),
+      paddedArray(['Primary Contact', row[6], row[7]]),
+      paddedArray(['Secondary Contact', row[8], row[9]]),
+      Array(4),
+      paddedArray(["Physician's Name", row[10], 'Phone', row[11]]),
+      Array(4),
+      paddedArray(['Additional Notes', row[19]]),
+      Array(4),
+      paddedArray(['--------------------']),
+    ]
 
     outputSheet.getRange(`A${base}:D${base + 11}`).setValues(rosterEntry)
   })
