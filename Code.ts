@@ -105,11 +105,8 @@ function createOutingListing() {
 function drivingText(a: string[], name: string): string {
   const how = DRIVERS[a[15]]
   const num = parseInt(a[17]) + 1
-  if (how == 'both') {
-    return `${name} (${num})`
-  }
 
-  return `${name} (${how}: ${num})`
+  return how == 'both' ? `${name} (${num})` : `${name} (${how}: ${num})`
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
