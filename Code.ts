@@ -43,11 +43,12 @@ function responseData(): string[][] {
   if (formSheet == null) {
     throw new Error('Form Responses 1 sheet not found')
   }
-  const responseData = formSheet.getDataRange().getDisplayValues()
-  // assumes row 1 contains column headers which our fucnctions don't need, and we'll ignore them by shifting
-  responseData.shift()
 
-  return responseData
+  const rd = formSheet.getDataRange().getDisplayValues()
+  // assumes row 1 contains column headers which our fucnctions don't need, and we'll ignore them by shifting
+  rd.shift()
+
+  return rd
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
