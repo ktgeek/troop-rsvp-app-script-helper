@@ -72,7 +72,6 @@ function createPatrolListing() {
   outputSheet.getRange(2, 3, outputSheet.getLastRow()).setHorizontalAlignment('right')
 }
 
-// pA is "paddedArray"
 function paddedArray(array: string[], len: number = 4): string[] {
   return Array.from({...array, length: len})
 }
