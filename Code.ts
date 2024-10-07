@@ -1,4 +1,4 @@
-const ADULTS: string[] = ['Adult Leader', 'Scouter Reserve']
+const ADULTS: string[] = ['Adult Leader (ASM or Committee)', 'Scouter Reserve (Adult)']
 
 const DRIVERS: {[id: string]: string} = {
   'Drive both ways': 'both',
