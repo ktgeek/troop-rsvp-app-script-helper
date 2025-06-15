@@ -60,7 +60,7 @@ function createPatrolListing() {
     ['Scout', 'Patrol', 'Campout Patrol', 'PoResponsibility', 'Dietary Restrictions', 'Notes'],
     ...rd.map(row => {
       const campout_patrol = ADULTS.includes(row[3]) ? 'A' : null
-      return [row[2], row[3], campout_patrol, null, row[13], row[18]]
+      return [row[2], row[3], campout_patrol, null, row[13], row[19]]
     }),
   ]
 
