@@ -116,7 +116,9 @@ function createDrivingAssignments() {
 
   const adultsCamping = rd.filter(a => ADULTS.includes(a[3]))
   const scouts = rd.filter(a => !ADULTS.includes(a[3]))
-  const parentDrivers = scouts.filter(a => Object.keys(DRIVERS).includes(a[15]))
+  const parentDrivers = scouts.filter(
+    a => Object.keys(DRIVERS).includes(a[15]) && a[17] != null && a[17] !== '',
+  )
 
   const drivers: (string | null)[] = [
     null,
