@@ -9,6 +9,31 @@ const DRIVERS: {[id: string]: string} = {
   'Tow from the campout only': 'tow from',
 }
 
+// Form column headers each field may appear under. The form's wording has changed between outings, and
+// columns have been added, removed, and moved, so we find columns by header rather than by position.
+const FIELDS = {
+  scout: [
+    'Name of Scout or Adult Leader attending',
+    'Name of Scout, Adult, or Adult Leader attending',
+  ],
+  patrol: ['Patrol Name'],
+  primaryName: ['Primary Emergency Contact Name'],
+  primaryPhone: ['Primary Emergency Contact Phone Number'],
+  secondaryName: ['Secondary Emergency Contact Name'],
+  secondaryPhone: ['Secondary Emergency Contact Phone Number'],
+  physician: ["Physician's Name"],
+  physicianPhone: ["Physician's Phone Number"],
+  allergies: ['Allergies'],
+  dietary: ['Dietary Restrictions'],
+  driving: ['Driving'],
+  driverName: ['Driver Name'],
+  seats: ['Seats'],
+  notes: ['Notes'],
+}
+
+type Field = keyof typeof FIELDS
+type ResponseRow = Record<Field, string>
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onOpen() {
   createMenu()
@@ -38,17 +63,44 @@ function createNamedSheet(name: string): GoogleAppsScript.Spreadsheet.Sheet {
   return output
 }
 
-function responseData(): string[][] {
+function normalizeHeader(header: string): string {
+  return header.trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+// Maps each field to the index of its column, or -1 when the form has no matching header. When a header appears more
+// than once (e.g. a question re-added to the form), the leftmost column wins.
+function fieldColumns(headers: string[]): Record<Field, number> {
+  const normalizedHeaders = headers.map(normalizeHeader)
+  const columns = {} as Record<Field, number>
+
+  for (const field of Object.keys(FIELDS) as Field[]) {
+    const aliases = FIELDS[field].map(normalizeHeader)
+    columns[field] = normalizedHeaders.findIndex(header => aliases.includes(header))
+    if (columns[field] === -1) {
+      Logger.log(`No column found for "${field}"; looked for: ${FIELDS[field].join(' | ')}`)
+    }
+  }
+
+  return columns
+}
+
+function responseData(): ResponseRow[] {
   const formSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Form Responses 1')
   if (formSheet == null) {
     throw new Error('Form Responses 1 sheet not found')
   }
 
-  const rd = formSheet.getDataRange().getDisplayValues()
-  // assumes row 1 contains column headers which our fucnctions don't need, and we'll ignore them by shifting
-  rd.shift()
+  const [headers, ...rows] = formSheet.getDataRange().getDisplayValues()
+  const columns = fieldColumns(headers)
+  const fields = Object.keys(FIELDS) as Field[]
 
-  return rd
+  return rows.map(row => {
+    const entry = {} as ResponseRow
+    for (const field of fields) {
+      entry[field] = columns[field] === -1 ? '' : row[columns[field]]
+    }
+    return entry
+  })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,8 +111,8 @@ function createPatrolListing() {
   const listing: (string | null)[][] = [
     ['Scout', 'Patrol', 'Campout Patrol', 'PoResponsibility', 'Dietary Restrictions', 'Notes'],
     ...rd.map(row => {
-      const campout_patrol = ADULTS.includes(row[3]) ? 'A' : null
-      return [row[2], row[3], campout_patrol, null, row[13], row[19]]
+      const campout_patrol = ADULTS.includes(row.patrol) ? 'A' : null
+      return [row.scout, row.patrol, campout_patrol, null, row.dietary, row.notes]
     }),
   ]
 
@@ -84,16 +136,16 @@ function createOutingListing() {
     const base = 13 * i + 1
 
     const rosterEntry: string[][] = [
-      paddedArray(['Scout', row[2], row[3]]),
-      paddedArray(['Allergies', row[12]]),
-      paddedArray(['Dietary Restrictions', row[13]]),
+      paddedArray(['Scout', row.scout, row.patrol]),
+      paddedArray(['Allergies', row.allergies]),
+      paddedArray(['Dietary Restrictions', row.dietary]),
       Array(4),
-      paddedArray(['Primary Contact', row[6], row[7]]),
-      paddedArray(['Secondary Contact', row[8], row[9]]),
+      paddedArray(['Primary Contact', row.primaryName, row.primaryPhone]),
+      paddedArray(['Secondary Contact', row.secondaryName, row.secondaryPhone]),
       Array(4),
-      paddedArray(["Physician's Name", row[10], 'Phone', row[11]]),
+      paddedArray(["Physician's Name", row.physician, 'Phone', row.physicianPhone]),
       Array(4),
-      paddedArray(['Additional Notes', row[19]]),
+      paddedArray(['Additional Notes', row.notes]),
       Array(4),
       paddedArray(['--------------------']),
     ]
@@ -102,9 +154,9 @@ function createOutingListing() {
   })
 }
 
-function drivingText(a: string[], name: string): string {
-  const how = DRIVERS[a[15]]
-  const num = parseInt(a[17]) + 1
+function drivingText(a: ResponseRow, name: string): string {
+  const how = DRIVERS[a.driving]
+  const num = parseInt(a.seats) + 1
 
   return how == 'both' ? `${name} (${num})` : `${name} (${how}: ${num})`
 }
@@ -114,22 +166,22 @@ function createDrivingAssignments() {
   const outputSheet = createNamedSheet('Driving')
   const rd = responseData()
 
-  const adultsCamping = rd.filter(a => ADULTS.includes(a[3]))
-  const scouts = rd.filter(a => !ADULTS.includes(a[3]))
+  const adultsCamping = rd.filter(a => ADULTS.includes(a.patrol))
+  const scouts = rd.filter(a => !ADULTS.includes(a.patrol))
   const parentDrivers = scouts.filter(
-    a => Object.keys(DRIVERS).includes(a[15]) && a[17] != null && a[17] !== '',
+    a => Object.keys(DRIVERS).includes(a.driving) && a.seats !== '',
   )
 
   const drivers: (string | null)[] = [
     null,
-    ...adultsCamping.map(a => drivingText(a, a[2])),
-    ...parentDrivers.map(a => drivingText(a, a[16] || `${a[2]}!!`)),
+    ...adultsCamping.map(a => drivingText(a, a.scout)),
+    ...parentDrivers.map(a => drivingText(a, a.driverName || `${a.scout}!!`)),
   ]
 
   const columns = drivers.length
   const drivingData: (string | null)[][] = [
     drivers,
-    ...scouts.map(s => paddedArray([s[2]], drivers.length)),
+    ...scouts.map(s => paddedArray([s.scout], drivers.length)),
   ]
 
   const rows = scouts.length + 1

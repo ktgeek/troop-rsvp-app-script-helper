@@ -27,10 +27,12 @@ spacing, no arrow-paren, 100 columns.
   `eslint-disable no-unused-vars` comment, since nothing in the TS calls them. Add the same when adding a menu item,
   and register the item in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects.
-- `responseData()` reads the `Form Responses 1` sheet (display values) and drops the header row. Every generator
-  consumes that and reads fields **by hard-coded column index** (e.g. `row[2]` scout name, `row[3]` patrol,
-  `row[15]` driver option, `row[17]` seat count). If the form changes its questions or order, update every index.
-  Recent commits ("track rename of adult columns") show this being a recurring maintenance point.
+- `responseData()` reads the `Form Responses 1` sheet (display values) and returns one object per response, keyed by
+  the field names in `FIELDS` (e.g. `row.scout`, `row.patrol`, `row.seats`). Columns are found by matching row 1
+  headers against each field's alias list (trimmed, case-insensitive), so column moves and added questions are
+  harmless. When the form rewords a question, add the new wording as another alias; when a generator needs a new
+  column, add a field. A missing header yields `''` and a `Logger.log` line rather than an error, and when a header
+  appears twice the leftmost column wins.
 - `createNamedSheet(name)` renames any existing sheet of that name to `"<name> (old)"` and inserts a fresh one.
   Running a generator twice stacks `(old)` sheets; it does not overwrite.
 - Domain constants at the top: `ADULTS` (patrol values meaning an adult is camping, matched against the form's
