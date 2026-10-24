@@ -15,5 +15,8 @@ function createPatrolListing() {
   outputSheet.getRange('A1:F1').setFontWeight('bold').setHorizontalAlignment('center')
   outputSheet.setFrozenRows(1)
   outputSheet.autoResizeColumns(1, 6)
-  outputSheet.getRange(2, 3, outputSheet.getLastRow()).setHorizontalAlignment('right')
+  // Skip the empty case, where a range needs at least one row.
+  if (rd.length > 0) {
+    outputSheet.getRange(2, 3, rd.length).setHorizontalAlignment('right')
+  }
 }
