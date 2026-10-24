@@ -17,8 +17,7 @@ All logic lives in `Code.ts`.
 - No test suite exists. The code needs the Apps Script runtime (`SpreadsheetApp`), so verify by pushing and running
   from the sheet's menu.
 
-`npm run prettier-format` targets `src/**/*.ts`, but there is no `src/` directory (the source is `./Code.ts`), so it
-matches nothing. Use `npx prettier --write Code.ts`. Prettier style: no semicolons, single quotes, no bracket
+`npm run prettier-format` rewrites `Code.ts` in place. Prettier style: no semicolons, single quotes, no bracket
 spacing, no arrow-paren, 100 columns.
 
 ## Architecture
