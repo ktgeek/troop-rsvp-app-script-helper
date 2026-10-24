@@ -3,64 +3,10 @@
   <head>
     <base target="_top" />
     <meta charset="utf-8" />
+    <?!= include('PrintShared') ?>
     <style>
-      :root {
-        --green: #1f4d3a;
-        --grey: #6b6b6b;
-        --rule: #cfcfc7;
-        --alert-bg: #fdecea;
-        --alert-fg: #9b1c1c;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: Helvetica, Arial, sans-serif;
-        font-size: 13px;
-        color: #111;
-        background: #ddd;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-      }
-
-      #controls {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-        align-items: end;
-        padding: 10px 16px;
-        background: #fff;
-        border-bottom: 1px solid #bbb;
-      }
-      #controls label { display: flex; flex-direction: column; font-size: 11px; color: var(--grey); }
-      #controls input[type='text'] { width: 190px; padding: 4px 6px; font-size: 13px; }
-      #controls button {
-        padding: 6px 18px;
-        font-size: 13px;
-        font-weight: bold;
-        color: #fff;
-        background: var(--green);
-        border: 0;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      #hint { flex-basis: 100%; font-size: 11px; color: var(--grey); }
-      #error { color: var(--alert-fg); font-weight: bold; padding: 16px; }
-
-      #paper { width: 7.4in; margin: 16px auto; padding: 0.2in; background: #fff; }
+      body { font-size: 13px; }
       .page + .page { margin-top: 24px; padding-top: 24px; border-top: 2px dashed #bbb; }
-
-      .masthead {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 10px;
-        color: #fff;
-        background: var(--green);
-        font-size: 13px;
-      }
-      .masthead .title { font-weight: bold; text-transform: uppercase; }
       h1 { margin: 10px 0 6px; font-size: 20px; color: var(--green); }
 
       .warning { margin: 8px 0; padding: 6px 10px; font-size: 12px; color: var(--alert-fg); background: var(--alert-bg); border: 1.5px solid var(--alert-fg); }
@@ -77,13 +23,8 @@
       .car .empty { padding: 6px 10px; font-size: 12px; color: var(--grey); }
       .car .over-note { padding: 4px 10px; font-size: 11px; font-weight: bold; color: var(--alert-fg); background: var(--alert-bg); }
 
-      .colophon { margin-top: 10px; font-size: 9px; color: var(--grey); }
-
       @page { size: letter; margin: 0.5in 0.55in 0.6in; }
       @media print {
-        body { background: #fff; }
-        #controls, .colophon { display: none; }
-        #paper { width: auto; margin: 0; padding: 0 2px 0 0; }
         .page + .page { margin-top: 0; padding-top: 0; border-top: 0; break-before: page; }
         .car { break-inside: avoid; }
       }
@@ -103,16 +44,6 @@
     <div id="paper" hidden></div>
 
     <script>
-      const TROOP = 'Troop 66'
-      const $ = id => document.getElementById(id)
-
-      function el(tag, className, content) {
-        const node = document.createElement(tag)
-        if (className) node.className = className
-        for (const child of [].concat(content ?? [])) node.append(child)
-        return node
-      }
-
       function warning(heading, names) {
         return el('div', 'warning', [el('b', '', heading + ': '), names.join(', ')])
       }
@@ -131,12 +62,12 @@
         return el('div', c.overBy ? 'car over' : 'car', [head, body, ...note])
       }
 
-      function page(p, masthead) {
+      function page(p) {
         const warnings = []
         if (p.unassigned.length) warnings.push(warning('No car yet', p.unassigned))
         if (p.inSeveralCars.length) warnings.push(warning('In more than one car', p.inSeveralCars))
         return el('div', 'page', [
-          masthead(),
+          masthead('Driving'),
           el('h1', '', p.name),
           ...warnings,
           el('div', 'cars', p.cars.map(car)),
@@ -144,39 +75,21 @@
       }
 
       function render(pages) {
-        const masthead = () =>
-          el('div', 'masthead', [
-            el('div', 'title', `${TROOP}  |  ${$('title').value || 'Driving'}`),
-            el('div', '', $('subtitle').value),
-          ])
         const paper = $('paper')
         paper.replaceChildren(
-          ...pages.map(p => page(p, masthead)),
+          ...pages.map(page),
           el('div', 'colophon', 'Preview only; the print layout may paginate differently.'),
         )
         paper.hidden = false
       }
 
       function init({pages, settings}) {
-        for (const key of ['title', 'subtitle']) $(key).value = settings[key]
-        render(pages)
-
-        for (const id of ['title', 'subtitle']) {
-          $(id).addEventListener('input', () => render(pages))
-        }
-        $('print').addEventListener('click', () => {
-          google.script.run.saveDrivingPrintSettings({title: $('title').value, subtitle: $('subtitle').value})
-          window.print()
-        })
-        $('print').disabled = false
+        const redraw = () => render(pages)
+        wireControls(settings, ['title', 'subtitle'], redraw, 'saveDrivingPrintSettings')
+        redraw()
       }
 
-      function showError(error) {
-        $('error').textContent = `Could not build the driving sheet: ${error.message}`
-        $('error').hidden = false
-      }
-
-      google.script.run.withSuccessHandler(init).withFailureHandler(showError).getDrivingPrintPage()
+      loadDialog('driving sheet', 'getDrivingPrintPage', init)
     </script>
   </body>
 </html>

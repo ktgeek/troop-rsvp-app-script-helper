@@ -30,10 +30,7 @@ function patrolRosterGroups(): PatrolRosterGroup[] {
 }
 
 function showPatrolRoster() {
-  const dialog = HtmlService.createHtmlOutputFromFile('PatrolRosterDialog')
-    .setWidth(1000)
-    .setHeight(760)
-  SpreadsheetApp.getUi().showModalDialog(dialog, 'Printable patrol roster')
+  showPrintDialog('PatrolRosterDialog', 'Printable patrol roster')
 }
 
 // Called from PatrolRosterDialog.html via google.script.run.

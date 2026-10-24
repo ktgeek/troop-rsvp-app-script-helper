@@ -322,8 +322,7 @@ const DEFAULT_ROSTER_SETTINGS: RosterSettings = {
 }
 
 function showRoster() {
-  const dialog = HtmlService.createHtmlOutputFromFile('RosterDialog').setWidth(1000).setHeight(760)
-  SpreadsheetApp.getUi().showModalDialog(dialog, 'Printable roster')
+  showPrintDialog('RosterDialog', 'Printable roster')
 }
 
 // Called from RosterDialog.html via google.script.run.

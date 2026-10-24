@@ -41,8 +41,8 @@ spacing, no arrow-paren, 100 columns.
   `getRosterPage()` (groups plus saved settings) via `google.script.run`, renders the cards with `textContent`
   only, and its Print button calls `window.print()`; the user picks "Save as PDF". Print layout (page breaks, footer,
   page numbers via `@page` margin boxes) is all CSS. Title/date/lead/VERIFY-flag settings are stored by
-  `saveRosterSettings` in document properties. The build copies `RosterDialog.html` into `dist/` (tsc doesn't), and
-  `clasp push` uploads it from there. Apps Script needs every file's name unique regardless of type, so
+  `saveRosterSettings` in document properties. The build copies every `src/*.html` into `dist/` (tsc doesn't), and
+  `clasp push` uploads them from there. Apps Script needs every file's name unique regardless of type, so
   `Roster.html` could not sit beside `Roster.js`; keep base names distinct across `src/*.ts` and the HTML pages.
 - `sortPatrolSheet()` sorts the `Patrols` data rows in JS (Campout Patrol as plain text, then Patrol, then last name
   via `compareByLastName`) and writes the values back; it runs at the end of `createPatrolListing` and from the menu.
@@ -52,7 +52,8 @@ spacing, no arrow-paren, 100 columns.
   maps `rosterGroups()` to names, spelled-out PoRs (`ROLES`, shared with the rank order), allergies + dietary on one
   line, and only the Patrols-sheet notes (`patrolNotes`), and `PatrolRosterDialog.html` renders it. All three print
   dialogs keep their header fields through `readSettings`/`writeSettings` in `PrintDialog.ts` (`HeaderSettings` is the
-  title/date pair). The build copies every `src/*.html`.
+  title/date pair). The dialogs share their styles and page script (`el`, `masthead`, `wireControls`, `loadDialog`)
+  through `PrintShared.html`, pulled in by `include()` from a template (`showPrintDialog` evaluates them).
 - The "print driving sheet" item (`showDrivingPrint`) prints the hand-marked `Driving` tabs, not form data: every tab
   whose name starts with `Driving` except `Driving (old...)` becomes a `DrivingPage`. Driver headers are parsed back
   out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats are the

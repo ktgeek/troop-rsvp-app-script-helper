@@ -1,0 +1,115 @@
+<style>
+  :root {
+    --green: #1f4d3a;
+    --green-light: #e8f0eb;
+    --tan: #f7f4ec;
+    --grey: #6b6b6b;
+    --rule: #cfcfc7;
+    --alert-bg: #fdecea;
+    --alert-fg: #9b1c1c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: #111;
+    background: #ddd;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  #controls {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: end;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #bbb;
+  }
+  #controls label { display: flex; flex-direction: column; font-size: 11px; color: var(--grey); }
+  #controls input[type='text'] { width: 190px; padding: 4px 6px; font-size: 13px; }
+  #controls button {
+    padding: 6px 18px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+    background: var(--green);
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #hint { flex-basis: 100%; font-size: 11px; color: var(--grey); }
+  #error { color: var(--alert-fg); font-weight: bold; padding: 16px; }
+
+  #paper { width: 7.4in; margin: 16px auto; padding: 0.2in; background: #fff; }
+
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 8px;
+    color: #fff;
+    background: var(--green);
+    font-size: 11px;
+  }
+  .masthead .title { font-weight: bold; text-transform: uppercase; }
+
+  .colophon { margin-top: 10px; font-size: 9px; color: var(--grey); }
+
+  @media print {
+    body { background: #fff; }
+    #controls, .colophon { display: none; }
+    /* The right padding keeps the right borders from sitting on the printable edge, where they clip. */
+    #paper { width: auto; margin: 0; padding: 0 2px 0 0; }
+  }
+</style>
+
+<script>
+  const TROOP = 'Troop 66'
+  const $ = id => document.getElementById(id)
+
+  function el(tag, className, content) {
+    const node = document.createElement(tag)
+    if (className) node.className = className
+    for (const child of [].concat(content ?? [])) node.append(child)
+    return node
+  }
+
+  // The bar across the top of the paper, from the title and date fields.
+  function masthead(fallbackTitle) {
+    return el('div', 'masthead', [
+      el('div', 'title', `${TROOP}  |  ${$('title').value || fallbackTitle}`),
+      el('div', '', $('subtitle').value),
+    ])
+  }
+
+  // Fills the named control inputs from the saved settings, redraws when one changes, and on Print saves them
+  // through the server function saveName before opening the print window.
+  function wireControls(settings, ids, redraw, saveName) {
+    const isCheckbox = id => $(id).type === 'checkbox'
+    for (const id of ids) {
+      if (isCheckbox(id)) $(id).checked = settings[id]
+      else $(id).value = settings[id]
+      $(id).addEventListener('input', redraw)
+    }
+    $('print').addEventListener('click', () => {
+      const current = ids.map(id => [id, isCheckbox(id) ? $(id).checked : $(id).value])
+      google.script.run[saveName](Object.fromEntries(current))
+      window.print()
+    })
+    $('print').disabled = false
+  }
+
+  // Calls the server function serverName and hands its result to onData; a failure is shown instead of the paper.
+  function loadDialog(what, serverName, onData) {
+    const showError = error => {
+      $('error').textContent = `Could not build the ${what}: ${error.message}`
+      $('error').hidden = false
+    }
+    google.script.run.withSuccessHandler(onData).withFailureHandler(showError)[serverName]()
+  }
+</script>

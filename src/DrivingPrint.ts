@@ -100,10 +100,7 @@ function drivingPage(sheet: GoogleAppsScript.Spreadsheet.Sheet): DrivingPage {
 }
 
 function showDrivingPrint() {
-  const dialog = HtmlService.createHtmlOutputFromFile('DrivingPrintDialog')
-    .setWidth(1000)
-    .setHeight(760)
-  SpreadsheetApp.getUi().showModalDialog(dialog, 'Printable driving sheet')
+  showPrintDialog('DrivingPrintDialog', 'Printable driving sheet')
 }
 
 // Called from DrivingPrintDialog.html via google.script.run.

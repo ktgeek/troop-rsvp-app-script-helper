@@ -3,73 +3,14 @@
   <head>
     <base target="_top" />
     <meta charset="utf-8" />
+    <?!= include('PrintShared') ?>
     <style>
+      #controls label.check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 6px; }
       :root {
-        --green: #1f4d3a;
-        --green-light: #e8f0eb;
-        --tan: #f7f4ec;
-        --grey: #6b6b6b;
-        --rule: #cfcfc7;
-        --alert-bg: #fdecea;
-        --alert-fg: #9b1c1c;
         --flag-bg: #fff3d6;
         --flag-fg: #7a4b00;
       }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: Helvetica, Arial, sans-serif;
-        font-size: 12px;
-        color: #111;
-        background: #ddd;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-      }
 
-      #controls {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-        align-items: end;
-        padding: 10px 16px;
-        background: #fff;
-        border-bottom: 1px solid #bbb;
-      }
-      #controls label { display: flex; flex-direction: column; font-size: 11px; color: var(--grey); }
-      #controls input[type='text'] { width: 190px; padding: 4px 6px; font-size: 13px; }
-      #controls label.check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 6px; }
-      #controls button {
-        padding: 6px 18px;
-        font-size: 13px;
-        font-weight: bold;
-        color: #fff;
-        background: var(--green);
-        border: 0;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      #hint { flex-basis: 100%; font-size: 11px; color: var(--grey); }
-      #error { color: var(--alert-fg); font-weight: bold; padding: 16px; }
-
-      #paper {
-        width: 7.4in;
-        margin: 16px auto;
-        padding: 0.2in;
-        background: #fff;
-      }
-
-      .masthead {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 8px;
-        color: #fff;
-        background: var(--green);
-        font-size: 11px;
-      }
-      .masthead .title { font-weight: bold; text-transform: uppercase; }
       .summary { margin: 8px 0; font-size: 12px; color: var(--green); }
       .summary .verify { color: var(--flag-fg); }
 
@@ -109,8 +50,6 @@
       .strip { grid-column: 1 / -1; padding: 5px 8px; border-top: 0.5px solid var(--rule); }
       .strip.flag { font-size: 9.5px; color: var(--flag-fg); background: var(--flag-bg); }
 
-      .colophon { margin-top: 10px; font-size: 9px; color: var(--grey); }
-
       @page {
         size: letter;
         margin: 0.5in 0.55in 0.6in;
@@ -127,10 +66,6 @@
         }
       }
       @media print {
-        body { background: #fff; }
-        #controls, .colophon { display: none; }
-        /* The right padding keeps the cards' right border from sitting on the printable edge, where it clips. */
-        #paper { width: auto; margin: 0; padding: 0 2px 0 0; }
         .card, .keep-together { break-inside: avoid; }
         .band { break-after: avoid; }
       }
@@ -152,16 +87,6 @@
     <div id="paper" hidden></div>
 
     <script>
-      const TROOP = 'Troop 66'
-      const $ = id => document.getElementById(id)
-
-      function el(tag, className, content) {
-        const node = document.createElement(tag)
-        if (className) node.className = className
-        for (const child of [].concat(content ?? [])) node.append(child)
-        return node
-      }
-
       function field(label, value, {alert = false, empty = 'None reported'} = {}) {
         const valueClass = !value ? 'value dim' : alert ? 'value alert' : 'value'
         return el('div', 'field', [el('div', 'label', label), el('div', valueClass, value || empty)])
@@ -221,10 +146,7 @@
         const showFlags = $('showFlags').checked
         const paper = $('paper')
         paper.replaceChildren(
-          el('div', 'masthead', [
-            el('div', 'title', `${TROOP}  |  ${$('title').value || 'Roster'}`),
-            el('div', '', $('subtitle').value),
-          ]),
+          masthead('Roster'),
           summary(groups, $('lead').value, showFlags),
         )
 
@@ -240,31 +162,12 @@
       }
 
       function init({groups, settings}) {
-        for (const key of ['title', 'subtitle', 'lead']) $(key).value = settings[key]
-        $('showFlags').checked = settings.showFlags
-        render(groups)
-
-        for (const id of ['title', 'subtitle', 'lead', 'showFlags']) {
-          $(id).addEventListener('input', () => render(groups))
-        }
-        $('print').addEventListener('click', () => {
-          google.script.run.saveRosterSettings({
-            title: $('title').value,
-            subtitle: $('subtitle').value,
-            lead: $('lead').value,
-            showFlags: $('showFlags').checked,
-          })
-          window.print()
-        })
-        $('print').disabled = false
+        const redraw = () => render(groups)
+        wireControls(settings, ['title', 'subtitle', 'lead', 'showFlags'], redraw, 'saveRosterSettings')
+        redraw()
       }
 
-      function showError(error) {
-        $('error').textContent = `Could not build the roster: ${error.message}`
-        $('error').hidden = false
-      }
-
-      google.script.run.withSuccessHandler(init).withFailureHandler(showError).getRosterPage()
+      loadDialog('roster', 'getRosterPage', init)
     </script>
   </body>
 </html>
