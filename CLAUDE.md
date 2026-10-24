@@ -12,7 +12,8 @@ All logic lives in `Code.ts`.
 
 - `npm run build` — `tsc`, transpiles `Code.ts` to `dist/Code.js` (`module: none`, ES2017, strict)
 - `npm run lint` — ESLint (typescript-eslint + prettier as an error, `no-console` as a warning)
-- `npx clasp push` — deploy; `.clasp.json` has `rootDir: dist`, so run `build` first or the old JS is pushed
+- `npm run push` — build, then `clasp push` to deploy; `.clasp.json` has `rootDir: dist`, so pushing without
+  building would deploy stale JS
 - No test suite exists. The code needs the Apps Script runtime (`SpreadsheetApp`), so verify by pushing and running
   from the sheet's menu.
 
