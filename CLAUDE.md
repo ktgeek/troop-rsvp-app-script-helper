@@ -10,7 +10,8 @@ Source lives in `src/`, one file per feature (see Architecture).
 
 ## Commands
 
-- `npm run build` — `tsc`, transpiles `src/*.ts` to a flat `dist/*.js` (`module: none`, ES2017, strict)
+- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (`module: none`, ES2017,
+  strict). The clear keeps renamed or deleted sources from leaving stale files that `clasp push` would upload.
 - `npm run lint` — ESLint (typescript-eslint + prettier as an error, `no-console` as a warning)
 - `npm run push` — build, then `clasp push` to whatever script `.clasp.json` names; `.clasp.json` has
   `rootDir: dist`, so pushing without building would deploy stale JS
