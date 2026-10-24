@@ -22,7 +22,7 @@ entered over from the old one before printing the roster, which reads them from 
 
 ## Setup (once per machine)
 
-1. `npm install`
+1. Install Node 20.19+, 22.13+, or 24+ (ESLint 10's floor), then `npm install`
 2. `npx clasp login` and sign in with the Google account that owns (or can edit) the spreadsheets.
 3. Turn on the **Google Apps Script API** at <https://script.google.com/home/usersettings>.
 
