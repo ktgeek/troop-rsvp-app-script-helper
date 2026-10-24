@@ -10,7 +10,7 @@ Source lives in `src/`, one file per feature (see Architecture).
 
 ## Commands
 
-- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (`module: none`, ES2017,
+- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (ES2017 target,
   strict). The clear keeps renamed or deleted sources from leaving stale files that `clasp push` would upload.
 - `npm run lint` — ESLint 10 with the flat config in `eslint.config.mjs` (typescript-eslint + prettier as an error,
   `no-console` as a warning)
@@ -68,11 +68,11 @@ spacing, no arrow-paren, 100 columns.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
   `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by
   global name. Register new ones in `createMenu`.
-- `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
-  and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement
-  may evaluate something defined in another file (push order isn't guaranteed); reference them only inside
-  function bodies. ESLint is set to `sourceType: script` with `no-unused-vars` limited to local variables so
-  cross-file globals aren't flagged.
+- No `import`/`export` is deliberate (`module` is `es2015` only because TS 6 deprecated `module: none`): without them
+  every file is a script, so everything stays in the global scope Apps Script expects, and every pushed file shares
+  it. Files may use each other's functions and constants, but no top-level statement may evaluate something defined
+  in another file (push order isn't guaranteed); reference them only inside function bodies. ESLint is set to
+  `sourceType: script` with `no-unused-vars` limited to local variables so cross-file globals aren't flagged.
 - `responseData()` reads the `Form Responses 1` sheet (display values) and returns one object per response, keyed by
   the field names in `FIELDS` (e.g. `row.scout`, `row.patrol`, `row.seats`). Columns are found by matching row 1
   headers against each field's alias list (trimmed, case-insensitive), so column moves and added questions are
