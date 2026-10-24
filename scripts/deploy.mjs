@@ -7,7 +7,8 @@
 //   (any of the above accepts --dry-run to print the commands instead of running them)
 //
 // A sheet can have only one bound script, and Google has no API to look up a sheet's existing script ID, so
-// targets.json (gitignored) remembers the sheet -> script ID mapping. Unknown sheets get a new bound script.
+// targets.json (gitignored) remembers the sheet -> script ID mapping. Record each sheet once with --add; opening
+// Extensions > Apps Script in a sheet creates its bound script if it has none.
 import {execFileSync} from 'node:child_process'
 import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs'
 import {dirname, join} from 'node:path'
@@ -67,14 +68,15 @@ function writeClaspFile(scriptId) {
     writeFileSync(CLASP_FILE, JSON.stringify({scriptId, rootDir: 'dist'}, null, 2) + '\n')
 }
 
+// Saved names win over ID parsing, so a long name can't be mistaken for a sheet ID.
 function resolveTarget(input, targets) {
-  const sheetId = sheetIdFrom(input)
-  if (sheetId) return {sheetId, entry: targets[sheetId]}
+  const named = Object.entries(targets).find(([, entry]) => entry.name === input)
+  if (named) return {sheetId: named[0], entry: named[1]}
 
-  const match = Object.entries(targets).find(([, entry]) => entry.name === input)
-  if (!match)
+  const sheetId = sheetIdFrom(input)
+  if (!sheetId)
     fail(`"${input}" is not a sheet URL/ID or a saved name. Saved: ${savedNames(targets)}`)
-  return {sheetId: match[0], entry: match[1]}
+  return {sheetId, entry: targets[sheetId]}
 }
 
 function savedNames(targets) {
@@ -126,41 +128,18 @@ function assertLoggedIn() {
 
 function deploy(input, targets) {
   const {sheetId, entry} = resolveTarget(input, targets)
+  if (!entry) {
+    fail(
+      `No script recorded for sheet ${sheetId}. In the sheet, open Extensions > Apps Script (this creates the\n` +
+        'bound script if there is none), copy the Script ID from Project settings, and run:\n' +
+        '  npm run deploy -- --add <sheet URL or ID> <script ID> --name <label>',
+    )
+  }
+
   assertUniqueFileNames()
   if (!dryRun) assertLoggedIn()
   run('npm', ['run', 'build'])
-
-  if (entry) {
-    writeClaspFile(entry.scriptId)
-  } else {
-    console.log(`No script recorded for sheet ${sheetId}; creating a bound script.`)
-    console.log(
-      'If the sheet already has one (pasted in by hand), creation fails: find its script ID under',
-    )
-    console.log(
-      'Extensions > Apps Script > Project settings and run: npm run deploy -- --add <sheet> <script ID>',
-    )
-    run('npx', [
-      'clasp',
-      'create',
-      '--type',
-      'sheets',
-      '--parentId',
-      sheetId,
-      '--title',
-      name || 'Troop 66 RSVP helper',
-      '--rootDir',
-      'dist',
-    ])
-    if (!dryRun) {
-      targets[sheetId] = {
-        name: name || sheetId,
-        scriptId: JSON.parse(readFileSync(CLASP_FILE, 'utf8')).scriptId,
-      }
-      saveTargets(targets)
-    }
-  }
-
+  writeClaspFile(entry.scriptId)
   // -f because the pushed manifest (appsscript.json) should replace whatever the sheet's script currently has.
   run('npx', ['clasp', 'push', '-f'])
 }

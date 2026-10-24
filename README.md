@@ -26,15 +26,14 @@ npm run deploy -- <sheet URL | sheet ID | saved name>
 This builds, then pushes to that sheet's bound Apps Script project. **Updating a sheet you already deployed to is the
 same command**: the push replaces the project's files in place, and the menu always runs the latest push.
 
-A sheet can have only one bound script, and Google has no way to look up a sheet's script ID, so the script keeps a
+A sheet has only one bound script, and Google has no way to look up its ID, so the script keeps a
 `targets.json` (gitignored; shape in `targets.example.json`) mapping sheets to script IDs.
 
-- **Sheet with no script yet:** run the command above. It creates a bound script and records it.
-- **Sheet that already has a script** (for example, one pasted in by hand): record its script ID once, then deploy as
-  usual.
+- **First deploy to a sheet:** record the sheet's script ID once, then deploy as usual. A sheet with no script gets
+  one the first time you open Extensions > Apps Script.
   1. In the sheet, open Extensions > Apps Script > Project settings and copy the **Script ID**.
   2. `npm run deploy -- --add <sheet URL or ID> <script ID> --name <label>`
-  3. `npm run deploy -- <label>`
+  3. `npm run deploy -- <label>` (or the sheet's URL or ID)
 - `npm run deploy -- --list` shows saved targets; add `--dry-run` to any deploy to print the commands without running
   them.
 
@@ -73,4 +72,4 @@ sheet. See `CLAUDE.md` for the architecture.
   Extensions > Apps Script and deploy again.
 - **Duplicate menu items or old behavior after deploying to a hand-pasted script:** it may still have an old `Code.gs`
   next to the new `Code.js`. Delete the old file in the Apps Script editor.
-- **Creating a script for a sheet fails:** the sheet probably already has one. Find its script ID and use `--add`.
+- **"No script recorded for sheet ...":** the sheet isn't in `targets.json` yet. Record it with `--add` as above.
