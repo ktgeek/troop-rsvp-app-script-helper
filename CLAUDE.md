@@ -30,7 +30,7 @@ spacing, no arrow-paren, 100 columns.
 ## Architecture
 
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
-  `Patrols.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
+  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `Driving.ts` (with `DRIVERS`), `Roster.ts`.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
   names and phones, drops "none" answers, merges role/notes from the `Patrols` sheet, and attaches `issues` (the
   VERIFY reasons) to each person.
@@ -41,7 +41,11 @@ spacing, no arrow-paren, 100 columns.
   `saveRosterSettings` in document properties. The build copies `RosterDialog.html` into `dist/` (tsc doesn't), and
   `clasp push` uploads it from there. Apps Script needs every file's name unique regardless of type, so
   `Roster.html` could not sit beside `Roster.js`; keep base names distinct across `src/*.ts` and the HTML pages.
-- Menu entry points (`onOpen`, `createPatrolListing`, `showRoster`, `createDrivingAssignments`) are
+- `sortPatrolSheet()` sorts the `Patrols` data rows in JS (Campout Patrol as plain text, then Patrol, then last name
+  via `compareByLastName`) and writes the values back; it runs at the end of `createPatrolListing` and from the menu.
+  `lastNameKey` keeps particles like "Van" or "de" (`SURNAME_PARTICLES`) with the surname; add to that list if a
+  troop name sorts wrong.
+- Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `createDrivingAssignments`) are
   top-level functions because Apps Script resolves menu handlers by global name. Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
   and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement

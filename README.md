@@ -6,8 +6,13 @@ into working sheets. It adds a **Troop 66** menu:
 | Menu item            | What it does                                                                     |
 | -------------------- | -------------------------------------------------------------------------------- |
 | create patrol sheet  | Writes a `Patrols` sheet to fill in patrol assignments, roles, and notes         |
+| sort patrol sheet    | Re-sorts `Patrols` by Campout Patrol, then Patrol, then Scout's last name        |
 | create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats |
 | print roster         | Opens the printable roster, one card per person, to print or save as a PDF       |
+
+`Patrols` is sorted when created and again whenever you pick **sort patrol sheet**. Campout patrols sort as plain text,
+so blanks come first, then `1`, `2`, `3`, ..., and `A` (adults) last. Sorting rewrites the data rows' values, so
+cell colors or other formatting you add by hand won't follow the rows.
 
 The two sheet generators keep any existing sheet of the same name as `<name> (old)`, then `(old 2)`, `(old 3)`, ...
 (higher is newer) instead of overwriting it. The new `Patrols` sheet starts blank, so copy the roles and notes you had

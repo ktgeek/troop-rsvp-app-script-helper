@@ -54,6 +54,41 @@ function niceName(text: string): string {
     : name
 }
 
+// Words that begin a multi-word surname ("Van Pelt", "de Vries"), compared lower-case.
+const SURNAME_PARTICLES = [
+  'van',
+  'von',
+  'de',
+  'del',
+  'della',
+  'di',
+  'da',
+  'du',
+  'la',
+  'le',
+  'st',
+  'san',
+  'ter',
+  'ten',
+  'bin',
+]
+
+// The final word is the surname, extended left over any particles ("Ben Van Pelt" -> "van pelt"). Other
+// compound surnames ("Garcia Lopez") can't be told from a middle name, so they sort by the final word.
+function lastNameKey(name: string): string {
+  const words = cleanText(name).toLowerCase().split(' ')
+  let start = words.length - 1
+  while (start > 0 && SURNAME_PARTICLES.includes(words[start - 1])) {
+    start--
+  }
+  return words.slice(start).join(' ')
+}
+
+// The full name breaks ties.
+function compareByLastName(a: string, b: string): number {
+  return lastNameKey(a).localeCompare(lastNameKey(b)) || a.localeCompare(b)
+}
+
 function lastTenDigits(text: string): string {
   return text.replace(/\D/g, '').slice(-10)
 }
@@ -196,12 +231,7 @@ function roleRank(role: string): number {
 }
 
 function byRoleThenLastName(a: RosterPerson, b: RosterPerson): number {
-  const lastName = (person: RosterPerson) => person.name.split(' ').pop()?.toLowerCase() ?? ''
-  return (
-    roleRank(a.role) - roleRank(b.role) ||
-    lastName(a).localeCompare(lastName(b)) ||
-    a.name.localeCompare(b.name)
-  )
+  return roleRank(a.role) - roleRank(b.role) || compareByLastName(a.name, b.name)
 }
 
 // Adult leaders first, then one group per patrol, alphabetically.
