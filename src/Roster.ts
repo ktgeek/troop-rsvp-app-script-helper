@@ -36,6 +36,8 @@ type RosterPerson = {
   dietary: string
   medications: string
   notes: string
+  // Just what a leader entered on the Patrols sheet, for printouts that leave out the raw form answers.
+  patrolNotes: string
   // Things a human should double-check before the roster goes in the binder.
   issues: string[]
 }
@@ -231,6 +233,7 @@ function rosterPerson(row: ResponseRow, extras: Map<string, PatrolExtra[]>): Ros
     dietary: emptyIfNone(row.dietary),
     medications,
     notes,
+    patrolNotes: extra.notes,
     issues: [],
   }
   person.issues = rosterIssues(person)
@@ -298,6 +301,16 @@ function rosterGroups(): RosterGroup[] {
   return groups
 }
 
+// Per-printout header settings live in document properties so the next outing starts from the last one's.
+function readSettings<T extends object>(key: string, defaults: T): T {
+  const saved = PropertiesService.getDocumentProperties().getProperty(key)
+  return {...defaults, ...(saved ? JSON.parse(saved) : {})}
+}
+
+function writeSettings(key: string, settings: object) {
+  PropertiesService.getDocumentProperties().setProperty(key, JSON.stringify(settings))
+}
+
 const ROSTER_SETTINGS_KEY = 'rosterSettings'
 
 type RosterSettings = {title: string; subtitle: string; lead: string; showFlags: boolean}
@@ -316,17 +329,13 @@ function showRoster() {
 
 // Called from RosterDialog.html via google.script.run.
 function getRosterPage(): {groups: RosterGroup[]; settings: RosterSettings} {
-  const saved = PropertiesService.getDocumentProperties().getProperty(ROSTER_SETTINGS_KEY)
   return {
     groups: rosterGroups(),
-    settings: {...DEFAULT_ROSTER_SETTINGS, ...(saved ? JSON.parse(saved) : {})},
+    settings: readSettings(ROSTER_SETTINGS_KEY, DEFAULT_ROSTER_SETTINGS),
   }
 }
 
-// Called from RosterDialog.html via google.script.run, so the next outing starts from the last one's header.
+// Called from RosterDialog.html via google.script.run.
 function saveRosterSettings(settings: RosterSettings) {
-  PropertiesService.getDocumentProperties().setProperty(
-    ROSTER_SETTINGS_KEY,
-    JSON.stringify(settings),
-  )
+  writeSettings(ROSTER_SETTINGS_KEY, settings)
 }

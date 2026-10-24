@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --green: #1f4d3a;
+        --green-light: #e8f0eb;
+        --grey: #6b6b6b;
+        --rule: #cfcfc7;
+        --diet-bg: #fff3d6;
+        --diet-fg: #7a4b00;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        color: #111;
+        background: #ddd;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      #controls {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        align-items: end;
+        padding: 10px 16px;
+        background: #fff;
+        border-bottom: 1px solid #bbb;
+      }
+      #controls label { display: flex; flex-direction: column; font-size: 11px; color: var(--grey); }
+      #controls input[type='text'] { width: 190px; padding: 4px 6px; font-size: 13px; }
+      #controls button {
+        padding: 6px 18px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #fff;
+        background: var(--green);
+        border: 0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #hint { flex-basis: 100%; font-size: 11px; color: var(--grey); }
+      #error { color: #9b1c1c; font-weight: bold; padding: 16px; }
+
+      #paper { width: 7.4in; margin: 16px auto; padding: 0.2in; background: #fff; }
+
+      .masthead {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 10px;
+        color: #fff;
+        background: var(--green);
+        font-size: 13px;
+      }
+      .masthead .title { font-weight: bold; text-transform: uppercase; }
+
+      .groups { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+      .group { border: 1.5px solid var(--green); }
+      .group h2 {
+        margin: 0;
+        padding: 5px 10px;
+        color: #fff;
+        background: var(--green);
+        font-size: 16px;
+      }
+      .group h2 .count { font-size: 11px; font-weight: normal; opacity: 0.85; }
+
+      .person { padding: 6px 10px; border-top: 0.5px solid var(--rule); }
+      .person:first-of-type { border-top: 0; }
+      .line { display: flex; align-items: center; gap: 8px; }
+      .box { flex: none; width: 13px; height: 13px; border: 1.5px solid var(--green); }
+      .name { font-size: 15px; font-weight: bold; }
+      .role { margin-left: auto; font-size: 10px; font-weight: bold; color: var(--green); text-transform: uppercase; text-align: right; }
+      .diet { margin: 3px 0 0 21px; padding: 2px 6px; font-size: 11px; color: var(--diet-fg); background: var(--diet-bg); }
+      .notes { margin: 3px 0 0 21px; font-size: 11px; color: #333; }
+
+      .colophon { margin-top: 10px; font-size: 9px; color: var(--grey); }
+
+      @page { size: letter; margin: 0.5in 0.55in 0.6in; }
+      @media print {
+        body { background: #fff; }
+        #controls, .colophon { display: none; }
+        #paper { width: auto; margin: 0; padding: 0 2px 0 0; }
+        .group { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <label>Outing title <input type="text" id="title" placeholder="Big Timber 100 Camporee" /></label>
+      <label>Date <input type="text" id="subtitle" placeholder="September 2026" /></label>
+      <button id="print" disabled>Print / Save as PDF</button>
+      <div id="hint">
+        In the print window, choose "Save as PDF" as the destination and turn on "Background graphics".
+      </div>
+    </div>
+    <div id="error" hidden></div>
+    <div id="paper" hidden></div>
+
+    <script>
+      const TROOP = 'Troop 66'
+      const $ = id => document.getElementById(id)
+
+      function el(tag, className, content) {
+        const node = document.createElement(tag)
+        if (className) node.className = className
+        for (const child of [].concat(content ?? [])) node.append(child)
+        return node
+      }
+
+      function person(p) {
+        const parts = [el('div', 'line', [el('span', 'box'), el('span', 'name', p.name), el('span', 'role', p.role)])]
+        if (p.dietary) parts.push(el('div', 'diet', p.dietary))
+        if (p.notes) parts.push(el('div', 'notes', p.notes))
+        return el('div', 'person', parts)
+      }
+
+      function group(g) {
+        const heading = el('h2', '', [g.title + ' ', el('span', 'count', `(${g.people.length})`)])
+        return el('div', 'group', [heading, ...g.people.map(person)])
+      }
+
+      function render(groups) {
+        const paper = $('paper')
+        paper.replaceChildren(
+          el('div', 'masthead', [
+            el('div', 'title', `${TROOP}  |  ${$('title').value || 'Patrol Roster'}`),
+            el('div', '', $('subtitle').value),
+          ]),
+          el('div', 'groups', groups.map(group)),
+          el('div', 'colophon', 'Preview only; the print layout may paginate differently.'),
+        )
+        paper.hidden = false
+      }
+
+      function init({groups, settings}) {
+        for (const key of ['title', 'subtitle']) $(key).value = settings[key]
+        render(groups)
+
+        for (const id of ['title', 'subtitle']) {
+          $(id).addEventListener('input', () => render(groups))
+        }
+        $('print').addEventListener('click', () => {
+          google.script.run.savePatrolRosterSettings({title: $('title').value, subtitle: $('subtitle').value})
+          window.print()
+        })
+        $('print').disabled = false
+      }
+
+      function showError(error) {
+        $('error').textContent = `Could not build the patrol roster: ${error.message}`
+        $('error').hidden = false
+      }
+
+      google.script.run.withSuccessHandler(init).withFailureHandler(showError).getPatrolRosterPage()
+    </script>
+  </body>
+</html>

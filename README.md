@@ -3,12 +3,13 @@
 A Google Apps Script (TypeScript) that attaches to the Troop 66 RSVP spreadsheet and turns the Google Form responses
 into working sheets. It adds a **Troop 66** menu:
 
-| Menu item            | What it does                                                                     |
-| -------------------- | -------------------------------------------------------------------------------- |
-| create patrol sheet  | Writes a `Patrols` sheet to fill in patrol assignments, roles, and notes         |
-| sort patrol sheet    | Re-sorts `Patrols` by Campout Patrol, then Patrol, then Scout's last name        |
-| create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats |
-| print roster         | Opens the printable roster, one card per person, to print or save as a PDF       |
+| Menu item            | What it does                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| create patrol sheet  | Writes a `Patrols` sheet to fill in patrol assignments, roles, and notes           |
+| sort patrol sheet    | Re-sorts `Patrols` by Campout Patrol, then Patrol, then Scout's last name          |
+| create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats   |
+| print roster         | Opens the printable roster, one card per person, to print or save as a PDF         |
+| print patrol roster  | Opens a scout-facing roll call sheet by patrol: names, roles, dietary needs, notes |
 
 `Patrols` is sorted when created and again whenever you pick **sort patrol sheet**. Campout patrols sort as plain text,
 so blanks come first, then `1`, `2`, `3`, ..., and `A` (adults) last. Sorting rewrites the data rows' values, so
@@ -62,6 +63,13 @@ under.
 Leave **Show VERIFY flags** on for a working copy: cards with missing or suspicious contact and physician details get
 a yellow strip. Turn it off for the copy that goes in the binder. The footer and page numbers appear in the printout,
 not the preview, and need a recent Chrome.
+
+## Printing the patrol roster
+
+**Troop 66 > print patrol roster** is the scout-facing counterpart: no contact or medical details, just each patrol's
+members (adults included, under Adult Leaders) with a roll call checkbox, their PoR, allergies and dietary
+restrictions, and the notes from the `Patrols` sheet. It uses the same grouping as the leader roster. Notes are taken
+from the `Patrols` sheet only, so the wording you edit there is what scouts see. Print it the same way as the roster.
 
 ## Development
 

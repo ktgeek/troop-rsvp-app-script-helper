@@ -11,5 +11,6 @@ function createMenu() {
     .addItem('create driving sheet', 'createDrivingAssignments')
     .addSeparator()
     .addItem('print roster', 'showRoster')
+    .addItem('print patrol roster', 'showPatrolRoster')
     .addToUi()
 }

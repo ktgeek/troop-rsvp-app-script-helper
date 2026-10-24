@@ -30,7 +30,7 @@ spacing, no arrow-paren, 100 columns.
 ## Architecture
 
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
-  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `Driving.ts` (with `DRIVERS`), `Roster.ts`.
+  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `PatrolRoster.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
   names and phones, drops "none" answers, merges campout patrol/role/notes from the `Patrols` sheet, and attaches `issues` (the
   VERIFY reasons) to each person. Scouts are grouped by campout patrol once
@@ -47,8 +47,13 @@ spacing, no arrow-paren, 100 columns.
   via `compareByLastName`) and writes the values back; it runs at the end of `createPatrolListing` and from the menu.
   `lastNameKey` keeps particles like "Van" or "de" (`SURNAME_PARTICLES`) with the surname; add to that list if a
   troop name sorts wrong.
-- Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `createDrivingAssignments`) are
-  top-level functions because Apps Script resolves menu handlers by global name. Register new ones in `createMenu`.
+- The "print patrol roster" item (`showPatrolRoster`) is the scout-facing sibling of the roster: `PatrolRoster.ts`
+  maps `rosterGroups()` to names, spelled-out PoRs (`ROLE_NAMES`), allergies + dietary on one line, and only the
+  Patrols-sheet notes (`patrolNotes`), and `PatrolRosterDialog.html` renders it. Both dialogs keep their header fields
+  through `readSettings`/`writeSettings`. The build copies every `src/*.html`.
+- Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
+  `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by global name.
+  Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
   and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement
   may evaluate something defined in another file (push order isn't guaranteed); reference them only inside
