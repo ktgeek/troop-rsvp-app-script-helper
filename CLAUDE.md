@@ -12,8 +12,18 @@ Source lives in `src/`, one file per feature (see Architecture).
 
 - `npm run build` — `tsc`, transpiles `src/*.ts` to a flat `dist/*.js` (`module: none`, ES2017, strict)
 - `npm run lint` — ESLint (typescript-eslint + prettier as an error, `no-console` as a warning)
-- `npm run push` — build, then `clasp push` to deploy; `.clasp.json` has `rootDir: dist`, so pushing without
-  building would deploy stale JS
+- `npm run push` — build, then `clasp push` to whatever script `.clasp.json` names; `.clasp.json` has
+  `rootDir: dist`, so pushing without building would deploy stale JS
+- `npm run deploy -- <sheet URL | sheet ID | saved name>` — build, then push to that sheet's bound script (see
+  `scripts/deploy.mjs`). A sheet has only one bound script and Google can't look up its ID, so the sheet -> script ID
+  map lives in gitignored `targets.json` (shape in `targets.example.json`):
+  - a sheet that already has a script (e.g. pasted in by hand): record it once with
+    `npm run deploy -- --add <sheet> <script ID> --name <label>` (ID: Extensions > Apps Script > Project settings)
+  - a sheet with no script: `npm run deploy -- <sheet>` creates a bound one with `clasp create --parentId` and records it
+  - `--list` shows saved targets; `--dry-run` prints the commands without running them
+  - rewrites `.clasp.json` each run, and pushes `appsscript.json` (the build copies it into `dist/`), replacing the
+    target's manifest
+  - needs `clasp login` once, and the Apps Script API enabled at script.google.com/home/usersettings
 - No test suite exists. The code needs the Apps Script runtime (`SpreadsheetApp`), so verify by pushing and running
   from the sheet's menu.
 

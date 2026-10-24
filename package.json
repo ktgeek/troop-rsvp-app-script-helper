@@ -2,8 +2,9 @@
   "scripts": {
     "prettier-format": "prettier --config .prettierrc \"src/*.ts\" --write",
     "lint": "eslint . --ext .ts",
-    "build": "tsc",
-    "push": "npm run build && clasp push"
+    "build": "tsc && cp appsscript.json dist/",
+    "push": "npm run build && clasp push",
+    "deploy": "node scripts/deploy.mjs"
   },
   "devDependencies": {
     "@google/clasp": "^3.4.1",
