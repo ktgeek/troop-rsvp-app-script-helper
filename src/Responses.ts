@@ -56,6 +56,16 @@ function allColumns(normalizedHeaders: string[], aliases: string[]): number[] {
   )
 }
 
+// Index of the leftmost column whose header matches an alias, or -1. A miss is logged so a reworded header gets noticed
+// rather than silently producing blanks.
+function firstColumn(normalizedHeaders: string[], aliases: string[], label: string): number {
+  const index = allColumns(normalizedHeaders, aliases)[0] ?? -1
+  if (index === -1) {
+    Logger.log(`No column found for "${label}"; looked for: ${aliases.join(' | ')}`)
+  }
+  return index
+}
+
 // Maps each field to the index of its column, or -1 when the form has no matching header. When a header appears more
 // than once (e.g. a question re-added to the form), the leftmost column wins.
 function fieldColumns(headers: string[]): Record<Field, number> {
@@ -63,10 +73,7 @@ function fieldColumns(headers: string[]): Record<Field, number> {
   const columns = {} as Record<Field, number>
 
   for (const field of Object.keys(FIELDS) as Field[]) {
-    columns[field] = allColumns(normalizedHeaders, FIELDS[field])[0] ?? -1
-    if (columns[field] === -1) {
-      Logger.log(`No column found for "${field}"; looked for: ${FIELDS[field].join(' | ')}`)
-    }
+    columns[field] = firstColumn(normalizedHeaders, FIELDS[field], field)
   }
 
   return columns

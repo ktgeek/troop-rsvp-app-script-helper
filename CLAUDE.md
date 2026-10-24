@@ -34,6 +34,9 @@ spacing, no arrow-paren, 100 columns.
 
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
   `Patrols.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
+- `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
+  names and phones, drops "none" answers, merges role/notes from the `Patrols` sheet, and attaches `issues` (the
+  VERIFY reasons) to each person.
 - Menu entry points (`onOpen`, `createPatrolListing`, `createOutingListing`, `createDrivingAssignments`) are
   top-level functions because Apps Script resolves menu handlers by global name. Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
