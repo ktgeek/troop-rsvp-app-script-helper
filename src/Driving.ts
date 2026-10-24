@@ -11,9 +11,15 @@ function paddedArray(array: string[], len: number = 4): string[] {
   return Array.from({...array, length: len})
 }
 
+function hasSeatCount(a: ResponseRow): boolean {
+  return !isNaN(parseInt(a.seats))
+}
+
+// A "?" marks an answer that is missing or isn't a number (camping adults are listed even without one, and
+// parents can type words into Seats), so a person notices instead of the driver silently vanishing.
 function drivingText(a: ResponseRow, name: string): string {
-  const how = DRIVERS[a.driving]
-  const num = parseInt(a.seats) + 1
+  const how = DRIVERS[a.driving] ?? '?'
+  const num = hasSeatCount(a) ? parseInt(a.seats) + 1 : '?'
 
   return how == 'both' ? `${name} (${num})` : `${name} (${how}: ${num})`
 }
@@ -25,7 +31,7 @@ function createDrivingAssignments() {
   const adultsCamping = rd.filter(a => ADULTS.includes(a.patrol))
   const scouts = rd.filter(a => !ADULTS.includes(a.patrol))
   const parentDrivers = scouts.filter(
-    a => Object.keys(DRIVERS).includes(a.driving) && a.seats !== '',
+    a => Object.keys(DRIVERS).includes(a.driving) && a.seats.trim() !== '',
   )
 
   const drivers: (string | null)[] = [
@@ -43,5 +49,8 @@ function createDrivingAssignments() {
   const rows = scouts.length + 1
   outputSheet.getRange(1, 1, rows, columns).setValues(drivingData)
   outputSheet.autoResizeColumns(1, columns)
-  outputSheet.getRange(2, 2, rows - 1, columns - 1).setHorizontalAlignment('center')
+  // A range needs at least one row and column, which is missing when there are no scouts or no drivers.
+  if (rows > 1 && columns > 1) {
+    outputSheet.getRange(2, 2, rows - 1, columns - 1).setHorizontalAlignment('center')
+  }
 }
