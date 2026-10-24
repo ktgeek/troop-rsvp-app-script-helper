@@ -10,7 +10,7 @@ Source lives in `src/`, one file per feature (see Architecture).
 
 ## Commands
 
-- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (ES2017 target,
+- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (ES2022 target,
   strict). The clear keeps renamed or deleted sources from leaving stale files that `clasp push` would upload.
 - `npm run lint` — ESLint 10 over `src` and `scripts` with the flat config in `eslint.config.mjs` (typescript-eslint +
   prettier as an error, `no-console` as a warning). CI (`.github/workflows/ci.yml`) runs lint and build on PRs.
