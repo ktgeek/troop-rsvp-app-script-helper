@@ -48,8 +48,10 @@ spacing, no arrow-paren, 100 columns.
   via `compareByLastName`) and writes the values back; it runs at the end of `createPatrolListing` and from the menu.
   `lastNameKey` keeps particles like "Van" or "de" (`SURNAME_PARTICLES`) with the surname; add to that list if a
   troop name sorts wrong.
+- `rosterPerson` spells known PoRs out for both rosters (`roleDisplayName`, from the `ROLES` table that also sets the
+  rank order); unrecognized text prints as typed.
 - The "print patrol roster" item (`showPatrolRoster`) is the scout-facing sibling of the roster: `PatrolRoster.ts`
-  maps `rosterGroups()` to names, spelled-out PoRs (`ROLES`, shared with the rank order), allergies + dietary on one
+  maps `rosterGroups()` to names, PoRs, allergies + dietary on one
   line, and only the Patrols-sheet notes (`patrolNotes`), and `PatrolRosterDialog.html` renders it. All three print
   dialogs keep their header fields through `readSettings`/`writeSettings` in `PrintDialog.ts` (`HeaderSettings` is the
   title/date pair). The dialogs share their styles and page script (`el`, `masthead`, `wireControls`, `loadDialog`)

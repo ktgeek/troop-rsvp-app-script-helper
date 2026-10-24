@@ -5,11 +5,6 @@ type PatrolRosterPerson = {name: string; role: string; dietary: string; notes: s
 
 type PatrolRosterGroup = {title: string; people: PatrolRosterPerson[]}
 
-// Known PoRs are spelled out ("PL" -> "Patrol Leader"); anything else prints as typed.
-function roleDisplayName(role: string): string {
-  return findRole(role)?.name ?? role
-}
-
 // Allergies are folded in because the cooks need them as much as the dietary answers.
 function dietaryLine(person: RosterPerson): string {
   return [person.allergies && `Allergy: ${person.allergies}`, person.dietary]
@@ -22,7 +17,7 @@ function patrolRosterGroups(): PatrolRosterGroup[] {
     title: group.title,
     people: group.people.map(person => ({
       name: person.name,
-      role: roleDisplayName(person.role),
+      role: person.role,
       dietary: dietaryLine(person),
       notes: person.patrolNotes,
     })),

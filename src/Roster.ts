@@ -1,6 +1,6 @@
 // Roles come from the free-form PoResponsibility column of the Patrols sheet, so aliases are lower-case with dots
-// removed; see findRole. The lowest rank prints first within a group, and the name is how the scout-facing roster
-// spells the role out.
+// removed; see findRole. The lowest rank prints first within a group, and the name is how both rosters spell the
+// role out.
 const ROLES: {aliases: string[]; rank: number; name: string}[] = [
   {aliases: ['scoutmaster'], rank: 0, name: 'Scoutmaster'},
   {aliases: ['senior patrol leader', 'spl'], rank: 0, name: 'Senior Patrol Leader'},
@@ -42,7 +42,7 @@ type RosterPerson = {
   issues: string[]
 }
 
-// roles lists the group's PoRs, highest rank first, e.g. "PL Sam Doe".
+// roles lists the group's PoRs, highest rank first, e.g. "Patrol Leader Sam Doe".
 type RosterGroup = {title: string; roles: string[]; people: RosterPerson[]}
 
 function cleanText(text: string | undefined): string {
@@ -222,7 +222,7 @@ function rosterPerson(row: ResponseRow, extras: Map<string, PatrolExtra[]>): Ros
     isAdult,
     patrol: isAdult ? '' : cleanText(row.patrol),
     campoutPatrol: extra.campoutPatrol,
-    role: extra.role,
+    role: roleDisplayName(extra.role),
     primaryName,
     primaryPhone: formatPhone(row.primaryPhone),
     secondaryName,
@@ -243,6 +243,11 @@ function rosterPerson(row: ResponseRow, extras: Map<string, PatrolExtra[]>): Ros
 function findRole(role: string) {
   const alias = role.toLowerCase().replace(/\./g, '')
   return ROLES.find(known => known.aliases.includes(alias))
+}
+
+// Known PoRs are spelled out ("PL" -> "Patrol Leader"); anything else prints as typed.
+function roleDisplayName(role: string): string {
+  return findRole(role)?.name ?? role
 }
 
 function roleRank(role: string): number {
