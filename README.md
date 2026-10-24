@@ -72,6 +72,9 @@ members (adults included, under Adult Leaders) with a roll call checkbox, their 
 restrictions, and the notes from the `Patrols` sheet. It uses the same grouping as the leader roster. Notes are taken
 from the `Patrols` sheet only, so the wording you edit there is what scouts see. Print it the same way as the roster.
 
+When the `Patrols` sheet is created, the form's Notes are copied into its Notes column. Read that column before
+printing, since whatever it holds, including anything a parent wrote that is not meant for scouts, prints as written.
+
 ## Printing the driving sheet
 
 Generate the `Driving` sheet, then assign scouts by hand: put any mark in a scout's row under the driver they ride

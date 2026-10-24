@@ -30,10 +30,11 @@ spacing, no arrow-paren, 100 columns.
 ## Architecture
 
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
-  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `PatrolRoster.ts`, `DrivingPrint.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
+  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `PatrolRoster.ts`, `DrivingPrint.ts`, `Driving.ts` (with
+  `DRIVERS`), `Roster.ts`.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
-  names and phones, drops "none" answers, merges campout patrol/role/notes from the `Patrols` sheet, and attaches `issues` (the
-  VERIFY reasons) to each person. Scouts are grouped by campout patrol once
+  names and phones, drops "none" answers, merges campout patrol/role/notes from the `Patrols` sheet, and attaches
+  `issues` (the VERIFY reasons) to each person. Scouts are grouped by campout patrol once
   any scout has one other than the adults' `A` (`hasCampoutAssignments`); otherwise, or with no `Patrols` sheet, by the
   patrol they signed up under. Each group carries `roles`, its PoRs ranked, shown in the group band.
 - The "print roster" menu item (`showRoster`) opens `src/RosterDialog.html` in a modal dialog. The page fetches
@@ -53,12 +54,13 @@ spacing, no arrow-paren, 100 columns.
   through `readSettings`/`writeSettings`. The build copies every `src/*.html`.
 - The "print driving sheet" item (`showDrivingPrint`) prints the hand-marked `Driving` tabs, not form data: every tab
   whose name starts with `Driving` except `Driving (old...)` becomes a `DrivingPage`. Driver headers are parsed back
-  out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats are the scout seats, which already
-  count the driver's own scout (the form asks for seats not including them), so a car is over capacity above `seats`
+  out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats are the
+  scout seats, which already count the driver's own scout (the form asks for seats not including them), so a car is over
+  capacity above `seats`
   scouts. Any non-empty cell counts as an assignment.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
-  `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by global name.
-  Register new ones in `createMenu`.
+  `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by
+  global name. Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
   and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement
   may evaluate something defined in another file (push order isn't guaranteed); reference them only inside
@@ -77,4 +79,5 @@ spacing, no arrow-paren, 100 columns.
 - Domain constants at the top: `ADULTS` (patrol values meaning an adult is camping, matched against the form's
   option text) and `DRIVERS` (maps form option text to a short label used in the driving sheet).
 - Driving sheet: columns are camping adults plus parents who chose a driving option AND supplied a seat count;
-  rows are scouts. Seat count is shown as `parseInt(count) + 1`: the form asks for passenger seats not counting the driver's own scout.
+  rows are scouts. Seat count is shown as `parseInt(count) + 1`: the form asks for passenger seats not counting the
+  driver's own scout.
