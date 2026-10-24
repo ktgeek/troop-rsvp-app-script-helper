@@ -119,7 +119,7 @@
 
       function car(c) {
         const meta = [
-          c.seats == null ? 'Seats: ?' : `${c.seats} seats (driver included)`,
+          c.seats == null ? 'Seats: ?' : `${c.seats} scout seats`,
           c.label,
         ].filter(Boolean).join('  |  ')
         const head = el('div', 'head', [el('div', 'driver', c.driver), el('div', 'meta', meta)])

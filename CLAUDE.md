@@ -53,8 +53,9 @@ spacing, no arrow-paren, 100 columns.
   through `readSettings`/`writeSettings`. The build copies every `src/*.html`.
 - The "print driving sheet" item (`showDrivingPrint`) prints the hand-marked `Driving` tabs, not form data: every tab
   whose name starts with `Driving` except `Driving (old...)` becomes a `DrivingPage`. Driver headers are parsed back
-  out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats include the driver, so a car
-  is over capacity above `seats - 1` scouts. Any non-empty cell counts as an assignment.
+  out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats are the scout seats, which already
+  count the driver's own scout (the form asks for seats not including them), so a car is over capacity above `seats`
+  scouts. Any non-empty cell counts as an assignment.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
   `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by global name.
   Register new ones in `createMenu`.
@@ -76,4 +77,4 @@ spacing, no arrow-paren, 100 columns.
 - Domain constants at the top: `ADULTS` (patrol values meaning an adult is camping, matched against the form's
   option text) and `DRIVERS` (maps form option text to a short label used in the driving sheet).
 - Driving sheet: columns are camping adults plus parents who chose a driving option AND supplied a seat count;
-  rows are scouts. Seat count is shown as `parseInt(count) + 1` (driver included).
+  rows are scouts. Seat count is shown as `parseInt(count) + 1`: the form asks for passenger seats not counting the driver's own scout.

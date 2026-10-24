@@ -20,7 +20,7 @@ type Car = {
   driver: string
   // Empty when the driver drives both ways.
   label: string
-  // Counts the driver's own seat, as the Driving sheet's header does; null when the header has no number.
+  // Scout seats, including the driver's own scout (the form's count plus one); null when the header has no number.
   seats: number | null
   passengers: string[]
   overBy: number
@@ -60,10 +60,7 @@ function drivingPage(sheet: GoogleAppsScript.Spreadsheet.Sheet): DrivingPage {
       .map(row => cleanText(row[0]))
       .sort(compareByLastName)
     const car = {...parseDriverHeader(header), passengers}
-    // A car holds seats - 1 passengers, since the driver takes one.
-    return [
-      {...car, overBy: car.seats == null ? 0 : Math.max(0, passengers.length - (car.seats - 1))},
-    ]
+    return [{...car, overBy: car.seats == null ? 0 : Math.max(0, passengers.length - car.seats)}]
   })
   cars.sort((a, b) => compareByLastName(a.driver, b.driver))
 
