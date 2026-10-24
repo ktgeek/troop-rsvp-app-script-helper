@@ -116,7 +116,7 @@ function assertUniqueFileNames() {
 }
 
 function assertLoggedIn() {
-  let report = ''
+  let report
   try {
     report = execFileSync('npx', ['clasp', 'show-authorized-user'], {cwd: ROOT, encoding: 'utf8'})
   } catch {

@@ -1,6 +1,7 @@
 import js from '@eslint/js'
 import prettierConfig from 'eslint-config-prettier/flat'
 import prettierPlugin from 'eslint-plugin-prettier'
+import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
@@ -8,6 +9,13 @@ export default tseslint.config(
   js.configs.recommended,
   tseslint.configs.recommended,
   prettierConfig,
+  {
+    // The deploy script is plain Node ESM, so it gets Node globals and no TypeScript-only handling.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {globals: globals.node},
+    plugins: {prettier: prettierPlugin},
+    rules: {'prettier/prettier': 'error'},
+  },
   {
     files: ['**/*.ts'],
     languageOptions: {sourceType: 'script'},
