@@ -271,8 +271,9 @@ function hasCampoutAssignments(scouts: RosterPerson[]): boolean {
   )
 }
 
-// Adult leaders first, then one group per campout patrol (or per signed-up patrol, see hasCampoutAssignments),
-// in plain text order like the Patrols sheet, with scouts who have no campout patrol last.
+// Adult leaders first, then one group per campout patrol (or per signed-up patrol, see hasCampoutAssignments) in
+// text order, ignoring case so "eagles" and "Eagles" are one group. Unlike the Patrols sheet, which puts unassigned
+// scouts first to show the work left, a printout puts them last.
 function rosterGroups(): RosterGroup[] {
   const extras = patrolExtras()
   const people = responseData()
@@ -288,14 +289,16 @@ function rosterGroups(): RosterGroup[] {
   const scouts = people.filter(person => !person.isAdult)
   const byCampout = hasCampoutAssignments(scouts)
   const patrolOf = (scout: RosterPerson) => (byCampout ? scout.campoutPatrol : scout.patrol)
+  const groupKey = (scout: RosterPerson) => patrolOf(scout).toLowerCase()
   const titleOf = (patrol: string) =>
     byCampout ? campoutGroupTitle(patrol) : patrol || 'No patrol'
-  const patrols = [...new Set(scouts.map(patrolOf))].sort((a, b) =>
+  const keys = [...new Set(scouts.map(groupKey))].sort((a, b) =>
     a === '' || b === '' ? Number(a === '') - Number(b === '') : a.localeCompare(b),
   )
-  for (const patrol of patrols) {
-    const members = scouts.filter(scout => patrolOf(scout) === patrol)
-    groups.push(rosterGroup(titleOf(patrol), members.sort(byRoleThenLastName)))
+  for (const key of keys) {
+    const members = scouts.filter(scout => groupKey(scout) === key)
+    // The group is titled with the first spelling found.
+    groups.push(rosterGroup(titleOf(patrolOf(members[0])), members.sort(byRoleThenLastName)))
   }
 
   return groups
