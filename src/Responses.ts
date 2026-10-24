@@ -30,11 +30,25 @@ const SIGNATURE_HEADERS = ['Permission']
 type Field = keyof typeof FIELDS
 type ResponseRow = Record<Field, string> & {signers: string[]}
 
+// Next of "<name> (old)", "<name> (old 2)", ... after the highest one in use. Going past the highest (rather than
+// filling a gap left by a deleted sheet) keeps "higher number = newer", and nothing is ever overwritten or deleted.
+function nextOldName(spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet, name: string): string {
+  const prefix = `${name} (old`
+  const numbers = spreadsheet.getSheets().map(sheet => {
+    const sheetName = sheet.getName()
+    if (!sheetName.startsWith(prefix)) return 0
+    const suffix = sheetName.slice(prefix.length)
+    return suffix === ')' ? 1 : parseInt(suffix.match(/^ (\d+)\)$/)?.[1] ?? '0')
+  })
+  const next = Math.max(0, ...numbers) + 1
+  return next === 1 ? `${name} (old)` : `${name} (old ${next})`
+}
+
 function createNamedSheet(name: string): GoogleAppsScript.Spreadsheet.Sheet {
   const activeSheet = SpreadsheetApp.getActiveSpreadsheet()
   let output = activeSheet.getSheetByName(name)
   if (output != null) {
-    output.setName(`${name} (old)`)
+    output.setName(nextOldName(activeSheet, name))
   }
 
   output = activeSheet.insertSheet()

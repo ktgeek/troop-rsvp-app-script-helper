@@ -9,7 +9,9 @@ into working sheets. It adds a **Troop 66** menu:
 | create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats |
 | print roster         | Opens the printable roster, one card per person, to print or save as a PDF       |
 
-The two sheet generators rename any existing sheet of the same name to `<name> (old)` instead of overwriting it.
+The two sheet generators keep any existing sheet of the same name as `<name> (old)`, then `(old 2)`, `(old 3)`, ...
+(higher is newer) instead of overwriting it. The new `Patrols` sheet starts blank, so copy the roles and notes you had
+entered over from the old one before printing the roster, which reads them from `Patrols`.
 
 ## Setup (once per machine)
 

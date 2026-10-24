@@ -54,8 +54,9 @@ spacing, no arrow-paren, 100 columns.
   column, add a field. A missing header yields `''` and a `Logger.log` line rather than an error, and when a header
   appears twice the leftmost column wins. The exception is `row.signers`, which collects every "Permission" column
   (`SIGNATURE_HEADERS`) since that question can repeat.
-- `createNamedSheet(name)` renames any existing sheet of that name to `"<name> (old)"` and inserts a fresh one.
-  Running a generator twice stacks `(old)` sheets; it does not overwrite.
+- `createNamedSheet(name)` renames any existing sheet of that name to the next of `"<name> (old)"`,
+  `"<name> (old 2)"`, ... after the highest in use, and inserts a fresh one. Running a generator repeatedly keeps every
+  older copy (the higher the number, the newer, even if you delete one in between); it never overwrites or deletes.
 - Domain constants at the top: `ADULTS` (patrol values meaning an adult is camping, matched against the form's
   option text) and `DRIVERS` (maps form option text to a short label used in the driving sheet).
 - Driving sheet: columns are camping adults plus parents who chose a driving option AND supplied a seat count;
