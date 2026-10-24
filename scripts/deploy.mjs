@@ -9,7 +9,7 @@
 // A sheet can have only one bound script, and Google has no API to look up a sheet's existing script ID, so
 // targets.json (gitignored) remembers the sheet -> script ID mapping. Unknown sheets get a new bound script.
 import {execFileSync} from 'node:child_process'
-import {existsSync, readFileSync, writeFileSync} from 'node:fs'
+import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs'
 import {dirname, join} from 'node:path'
 import {fileURLToPath} from 'node:url'
 
@@ -94,8 +94,40 @@ function add(input, scriptId, targets) {
   console.log(`saved ${targets[sheetId].name} -> script ${scriptId}`)
 }
 
+// Apps Script keeps one namespace for file names regardless of type, so Roster.ts (-> Roster.js) and Roster.html
+// can't be pushed together. Checking the sources catches that before any network call.
+function assertUniqueFileNames() {
+  const seen = new Map()
+  for (const file of readdirSync(join(ROOT, 'src')).filter(file => /\.(ts|html)$/.test(file))) {
+    const base = file.replace(/\.\w+$/, '')
+    if (seen.has(base)) {
+      fail(
+        `Apps Script can't hold both ${seen.get(base)} and ${file}: rename one so the names differ.`,
+      )
+    }
+    seen.set(base, file)
+  }
+}
+
+function assertLoggedIn() {
+  let report = ''
+  try {
+    report = execFileSync('npx', ['clasp', 'show-authorized-user'], {cwd: ROOT, encoding: 'utf8'})
+  } catch {
+    report = 'not logged in'
+  }
+  if (/not logged in/i.test(report)) {
+    fail(
+      'clasp is not logged in. Run `npx clasp login`, and enable the Apps Script API at\n' +
+        'https://script.google.com/home/usersettings, then retry.',
+    )
+  }
+}
+
 function deploy(input, targets) {
   const {sheetId, entry} = resolveTarget(input, targets)
+  assertUniqueFileNames()
+  if (!dryRun) assertLoggedIn()
   run('npm', ['run', 'build'])
 
   if (entry) {
