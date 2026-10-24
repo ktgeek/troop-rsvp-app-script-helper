@@ -20,10 +20,15 @@ const FIELDS = {
   driverName: ['Driver Name'],
   seats: ['Seats'],
   notes: ['Notes'],
+  medications: ['Medications'],
 }
 
+// Parents sign the form in a "Permission" question that can appear in several columns, so unlike FIELDS every
+// matching column is read.
+const SIGNATURE_HEADERS = ['Permission']
+
 type Field = keyof typeof FIELDS
-type ResponseRow = Record<Field, string>
+type ResponseRow = Record<Field, string> & {signers: string[]}
 
 function createNamedSheet(name: string): GoogleAppsScript.Spreadsheet.Sheet {
   const activeSheet = SpreadsheetApp.getActiveSpreadsheet()
@@ -44,6 +49,13 @@ function normalizeHeader(header: string): string {
   return header.trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
+function allColumns(normalizedHeaders: string[], aliases: string[]): number[] {
+  const normalizedAliases = aliases.map(normalizeHeader)
+  return normalizedHeaders.flatMap((header, index) =>
+    normalizedAliases.includes(header) ? [index] : [],
+  )
+}
+
 // Maps each field to the index of its column, or -1 when the form has no matching header. When a header appears more
 // than once (e.g. a question re-added to the form), the leftmost column wins.
 function fieldColumns(headers: string[]): Record<Field, number> {
@@ -51,8 +63,7 @@ function fieldColumns(headers: string[]): Record<Field, number> {
   const columns = {} as Record<Field, number>
 
   for (const field of Object.keys(FIELDS) as Field[]) {
-    const aliases = FIELDS[field].map(normalizeHeader)
-    columns[field] = normalizedHeaders.findIndex(header => aliases.includes(header))
+    columns[field] = allColumns(normalizedHeaders, FIELDS[field])[0] ?? -1
     if (columns[field] === -1) {
       Logger.log(`No column found for "${field}"; looked for: ${FIELDS[field].join(' | ')}`)
     }
@@ -69,10 +80,11 @@ function responseData(): ResponseRow[] {
 
   const [headers, ...rows] = formSheet.getDataRange().getDisplayValues()
   const columns = fieldColumns(headers)
+  const signerColumns = allColumns(headers.map(normalizeHeader), SIGNATURE_HEADERS)
   const fields = Object.keys(FIELDS) as Field[]
 
   return rows.map(row => {
-    const entry = {} as ResponseRow
+    const entry = {signers: signerColumns.map(column => row[column])} as ResponseRow
     for (const field of fields) {
       entry[field] = columns[field] === -1 ? '' : row[columns[field]]
     }

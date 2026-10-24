@@ -46,7 +46,8 @@ spacing, no arrow-paren, 100 columns.
   headers against each field's alias list (trimmed, case-insensitive), so column moves and added questions are
   harmless. When the form rewords a question, add the new wording as another alias; when a generator needs a new
   column, add a field. A missing header yields `''` and a `Logger.log` line rather than an error, and when a header
-  appears twice the leftmost column wins.
+  appears twice the leftmost column wins. The exception is `row.signers`, which collects every "Permission" column
+  (`SIGNATURE_HEADERS`) since that question can repeat.
 - `createNamedSheet(name)` renames any existing sheet of that name to `"<name> (old)"` and inserts a fresh one.
   Running a generator twice stacks `(old)` sheets; it does not overwrite.
 - Domain constants at the top: `ADULTS` (patrol values meaning an adult is camping, matched against the form's
