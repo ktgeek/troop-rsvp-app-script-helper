@@ -37,7 +37,14 @@ spacing, no arrow-paren, 100 columns.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
   names and phones, drops "none" answers, merges role/notes from the `Patrols` sheet, and attaches `issues` (the
   VERIFY reasons) to each person.
-- Menu entry points (`onOpen`, `createPatrolListing`, `createOutingListing`, `createDrivingAssignments`) are
+- The "print roster" menu item (`showRoster`) opens `src/RosterDialog.html` in a modal dialog. The page fetches
+  `getRosterPage()` (groups plus saved settings) via `google.script.run`, renders the cards with `textContent`
+  only, and its Print button calls `window.print()`; the user picks "Save as PDF". Print layout (page breaks, footer,
+  page numbers via `@page` margin boxes) is all CSS. Title/date/lead/VERIFY-flag settings are stored by
+  `saveRosterSettings` in document properties. The build copies `RosterDialog.html` into `dist/` (tsc doesn't), and
+  `clasp push` uploads it from there. Apps Script needs every file's name unique regardless of type, so
+  `Roster.html` could not sit beside `Roster.js`; keep base names distinct across `src/*.ts` and the HTML pages.
+- Menu entry points (`onOpen`, `createPatrolListing`, `showRoster`, `createDrivingAssignments`) are
   top-level functions because Apps Script resolves menu handlers by global name. Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
   and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement

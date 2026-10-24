@@ -2,7 +2,7 @@
   "scripts": {
     "prettier-format": "prettier --config .prettierrc \"src/*.ts\" --write",
     "lint": "eslint . --ext .ts",
-    "build": "tsc && cp appsscript.json dist/",
+    "build": "tsc && cp appsscript.json src/RosterDialog.html dist/",
     "push": "npm run build && clasp push",
     "deploy": "node scripts/deploy.mjs"
   },

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --green: #1f4d3a;
+        --green-light: #e8f0eb;
+        --tan: #f7f4ec;
+        --grey: #6b6b6b;
+        --rule: #cfcfc7;
+        --alert-bg: #fdecea;
+        --alert-fg: #9b1c1c;
+        --flag-bg: #fff3d6;
+        --flag-fg: #7a4b00;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 12px;
+        color: #111;
+        background: #ddd;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      #controls {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        align-items: end;
+        padding: 10px 16px;
+        background: #fff;
+        border-bottom: 1px solid #bbb;
+      }
+      #controls label { display: flex; flex-direction: column; font-size: 11px; color: var(--grey); }
+      #controls input[type='text'] { width: 190px; padding: 4px 6px; font-size: 13px; }
+      #controls label.check { flex-direction: row; align-items: center; gap: 6px; padding-bottom: 6px; }
+      #controls button {
+        padding: 6px 18px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #fff;
+        background: var(--green);
+        border: 0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      #hint { flex-basis: 100%; font-size: 11px; color: var(--grey); }
+      #error { color: var(--alert-fg); font-weight: bold; padding: 16px; }
+
+      #paper {
+        width: 7.4in;
+        margin: 16px auto;
+        padding: 0.2in;
+        background: #fff;
+      }
+
+      .masthead {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 8px;
+        color: #fff;
+        background: var(--green);
+        font-size: 11px;
+      }
+      .masthead .title { font-weight: bold; text-transform: uppercase; }
+      .summary { margin: 8px 0; font-size: 12px; color: var(--green); }
+      .summary .verify { color: var(--flag-fg); }
+
+      .band {
+        padding: 3px 8px;
+        color: var(--green);
+        background: var(--green-light);
+        border-bottom: 1.5px solid var(--green);
+        font-size: 13px;
+        font-weight: bold;
+      }
+      .band .count { font-size: 9px; color: var(--grey); }
+      .group { margin-bottom: 6px; }
+
+      .card { margin: 0 0 7px; border: 1px solid var(--green); }
+      .band + .card { margin-top: 5px; }
+      .card .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 8px 5px;
+        color: #fff;
+        background: var(--green);
+      }
+      .card .name { font-size: 15px; font-weight: bold; }
+      .card .badge { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+      .card .body { display: grid; grid-template-columns: 1fr 1fr; background: var(--tan); }
+      .card .body > div { padding: 5px 8px; }
+      .card .body > div + div { border-left: 0.5px solid var(--rule); }
+      .card .body > .has-alert { background: var(--alert-bg); }
+      .field + .field { margin-top: 3px; }
+      .label { font-size: 8px; font-weight: bold; color: var(--grey); text-transform: uppercase; }
+      .value { font-size: 11px; line-height: 1.25; }
+      .value.alert { font-weight: bold; color: var(--alert-fg); }
+      .value.dim { color: var(--grey); }
+      .strip { grid-column: 1 / -1; padding: 5px 8px; border-top: 0.5px solid var(--rule); }
+      .strip.flag { font-size: 9.5px; color: var(--flag-fg); background: var(--flag-bg); }
+
+      .colophon { margin-top: 10px; font-size: 9px; color: var(--grey); }
+
+      @page {
+        size: letter;
+        margin: 0.5in 0.55in 0.6in;
+        @bottom-left {
+          content: 'CONFIDENTIAL: contains medical and contact information. '
+            'Keep with the Scoutmaster, shred after the outing.';
+          font: 8px Helvetica, Arial, sans-serif;
+          color: #6b6b6b;
+        }
+        @bottom-right {
+          content: 'Page ' counter(page);
+          font: 8px Helvetica, Arial, sans-serif;
+          color: #6b6b6b;
+        }
+      }
+      @media print {
+        body { background: #fff; }
+        #controls, .colophon { display: none; }
+        /* The right padding keeps the cards' right border from sitting on the printable edge, where it clips. */
+        #paper { width: auto; margin: 0; padding: 0 2px 0 0; }
+        .card, .keep-together { break-inside: avoid; }
+        .band { break-after: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <label>Outing title <input type="text" id="title" placeholder="Big Timber 100 Camporee" /></label>
+      <label>Date <input type="text" id="subtitle" placeholder="September 2026" /></label>
+      <label>Lead line <input type="text" id="lead" placeholder="Scoutmaster: Name" /></label>
+      <label class="check"><input type="checkbox" id="showFlags" /> Show VERIFY flags</label>
+      <button id="print" disabled>Print / Save as PDF</button>
+      <div id="hint">
+        In the print window, choose "Save as PDF" as the destination and turn on "Background graphics".
+        Uncheck the VERIFY flags for the copy that goes in the binder.
+      </div>
+    </div>
+    <div id="error" hidden></div>
+    <div id="paper" hidden></div>
+
+    <script>
+      const TROOP = 'Troop 66'
+      const $ = id => document.getElementById(id)
+
+      function el(tag, className, content) {
+        const node = document.createElement(tag)
+        if (className) node.className = className
+        for (const child of [].concat(content ?? [])) node.append(child)
+        return node
+      }
+
+      function field(label, value, {alert = false, empty = 'None reported'} = {}) {
+        const valueClass = !value ? 'value dim' : alert ? 'value alert' : 'value'
+        return el('div', 'field', [el('div', 'label', label), el('div', valueClass, value || empty)])
+      }
+
+      function contact(label, name, phone) {
+        if (!name && !phone) return field(label, '', {empty: 'Not provided'})
+        const lines = phone ? [name, el('br'), el('b', '', phone)] : [name]
+        return el('div', 'field', [el('div', 'label', label), el('div', 'value', lines)])
+      }
+
+      function card(person, showFlags) {
+        const where = person.isAdult ? 'Adult leader' : person.patrol
+        const badge = [person.role, where].filter(Boolean).join('  |  ')
+        const hasAlert = person.allergies || person.dietary || person.medications
+
+        const left = el('div', hasAlert ? 'has-alert' : '', [
+          field('Allergies', person.allergies, {alert: true}),
+          field('Dietary restrictions', person.dietary, {alert: true}),
+          person.medications ? field('Medications', person.medications, {alert: true}) : [],
+        ])
+        const right = el('div', '', [
+          contact('Primary contact', person.primaryName, person.primaryPhone),
+          contact('Secondary contact', person.secondaryName, person.secondaryPhone),
+          contact('Physician', person.physician, person.physicianPhone),
+        ])
+        const body = el('div', 'body', [left, right])
+        if (person.notes) {
+          body.append(el('div', 'strip', field('Additional notes', person.notes)))
+        }
+        if (showFlags && person.issues.length) {
+          body.append(el('div', 'strip flag', [el('b', '', 'VERIFY: '), person.issues.join('; ')]))
+        }
+
+        return el('div', 'card', [
+          el('div', 'head', [el('div', 'name', person.name), el('div', 'badge', badge)]),
+          body,
+        ])
+      }
+
+      function summary(groups, lead, showFlags) {
+        const people = groups.flatMap(group => group.people)
+        const adults = people.filter(person => person.isAdult).length
+        const flagged = people.filter(person => person.issues.length).length
+        const counts = ` attending (${people.length - adults} scouts, ${adults} adults)`
+        const parts = [[el('b', '', String(people.length)), counts]]
+        if (lead) parts.push([lead])
+        if (showFlags && flagged) {
+          parts.push([el('span', 'verify', `${flagged} card(s) marked VERIFY`)])
+        }
+        const line = el('div', 'summary')
+        parts.forEach((part, i) => line.append(...(i ? [' | '] : []), ...part))
+        return line
+      }
+
+      function render(groups) {
+        const showFlags = $('showFlags').checked
+        const paper = $('paper')
+        paper.replaceChildren(
+          el('div', 'masthead', [
+            el('div', 'title', `${TROOP}  |  ${$('title').value || 'Roster'}`),
+            el('div', '', $('subtitle').value),
+          ]),
+          summary(groups, $('lead').value, showFlags),
+        )
+
+        for (const group of groups) {
+          const band = el('div', 'band', [group.title + ' ', el('span', 'count', `(${group.people.length})`)])
+          const [first, ...rest] = group.people.map(person => card(person, showFlags))
+          // Keep the band with its first card so it never sits alone at the bottom of a page.
+          paper.append(el('div', 'group', [el('div', 'keep-together', [band, first]), ...rest]))
+        }
+        paper.append(el('div', 'colophon', 'Preview only; the footer and page numbers appear in the printout.'))
+        paper.hidden = false
+      }
+
+      function init({groups, settings}) {
+        for (const key of ['title', 'subtitle', 'lead']) $(key).value = settings[key]
+        $('showFlags').checked = settings.showFlags
+        render(groups)
+
+        for (const id of ['title', 'subtitle', 'lead', 'showFlags']) {
+          $(id).addEventListener('input', () => render(groups))
+        }
+        $('print').addEventListener('click', () => {
+          google.script.run.saveRosterSettings({
+            title: $('title').value,
+            subtitle: $('subtitle').value,
+            lead: $('lead').value,
+            showFlags: $('showFlags').checked,
+          })
+          window.print()
+        })
+        $('print').disabled = false
+      }
+
+      function showError(error) {
+        $('error').textContent = `Could not build the roster: ${error.message}`
+        $('error').hidden = false
+      }
+
+      google.script.run.withSuccessHandler(init).withFailureHandler(showError).getRosterPage()
+    </script>
+  </body>
+</html>

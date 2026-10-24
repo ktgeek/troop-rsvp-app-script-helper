@@ -227,27 +227,35 @@ function rosterGroups(): RosterGroup[] {
   return groups
 }
 
-function createOutingListing() {
-  const outputSheet = createNamedSheet('Printable Roster')
+const ROSTER_SETTINGS_KEY = 'rosterSettings'
 
-  responseData().forEach((row, i) => {
-    const base = 13 * i + 1
+type RosterSettings = {title: string; subtitle: string; lead: string; showFlags: boolean}
 
-    const rosterEntry: string[][] = [
-      paddedArray(['Scout', row.scout, row.patrol]),
-      paddedArray(['Allergies', row.allergies]),
-      paddedArray(['Dietary Restrictions', row.dietary]),
-      Array(4),
-      paddedArray(['Primary Contact', row.primaryName, row.primaryPhone]),
-      paddedArray(['Secondary Contact', row.secondaryName, row.secondaryPhone]),
-      Array(4),
-      paddedArray(["Physician's Name", row.physician, 'Phone', row.physicianPhone]),
-      Array(4),
-      paddedArray(['Additional Notes', row.notes]),
-      Array(4),
-      paddedArray(['--------------------']),
-    ]
+const DEFAULT_ROSTER_SETTINGS: RosterSettings = {
+  title: '',
+  subtitle: '',
+  lead: '',
+  showFlags: true,
+}
 
-    outputSheet.getRange(`A${base}:D${base + 11}`).setValues(rosterEntry)
-  })
+function showRoster() {
+  const dialog = HtmlService.createHtmlOutputFromFile('RosterDialog').setWidth(1000).setHeight(760)
+  SpreadsheetApp.getUi().showModalDialog(dialog, 'Printable roster')
+}
+
+// Called from RosterDialog.html via google.script.run.
+function getRosterPage(): {groups: RosterGroup[]; settings: RosterSettings} {
+  const saved = PropertiesService.getDocumentProperties().getProperty(ROSTER_SETTINGS_KEY)
+  return {
+    groups: rosterGroups(),
+    settings: {...DEFAULT_ROSTER_SETTINGS, ...(saved ? JSON.parse(saved) : {})},
+  }
+}
+
+// Called from RosterDialog.html via google.script.run, so the next outing starts from the last one's header.
+function saveRosterSettings(settings: RosterSettings) {
+  PropertiesService.getDocumentProperties().setProperty(
+    ROSTER_SETTINGS_KEY,
+    JSON.stringify(settings),
+  )
 }

@@ -7,6 +7,6 @@ function createMenu() {
     .createMenu('Troop 66')
     .addItem('create patrol sheet', 'createPatrolListing')
     .addItem('create driving sheet', 'createDrivingAssignments')
-    .addItem('create roster', 'createOutingListing')
+    .addItem('print roster', 'showRoster')
     .addToUi()
 }
