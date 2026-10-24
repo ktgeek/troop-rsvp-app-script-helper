@@ -1,18 +1,18 @@
-// Lowest rank prints first within a group. Roles come from the free-form PoResponsibility column of the Patrols
-// sheet, so keys are lower-case with dots removed; see roleRank.
-const ROLE_RANK: {[role: string]: number} = {
-  scoutmaster: 0,
-  'senior patrol leader': 0,
-  spl: 0,
-  'assistant senior patrol leader': 1,
-  aspl: 1,
-  'patrol leader': 2,
-  pl: 2,
-  'assistant patrol leader': 3,
-  apl: 3,
-  quartermaster: 4,
-  qm: 4,
-}
+// Roles come from the free-form PoResponsibility column of the Patrols sheet, so aliases are lower-case with dots
+// removed; see findRole. The lowest rank prints first within a group, and the name is how the scout-facing roster
+// spells the role out.
+const ROLES: {aliases: string[]; rank: number; name: string}[] = [
+  {aliases: ['scoutmaster'], rank: 0, name: 'Scoutmaster'},
+  {aliases: ['senior patrol leader', 'spl'], rank: 0, name: 'Senior Patrol Leader'},
+  {
+    aliases: ['assistant senior patrol leader', 'aspl'],
+    rank: 1,
+    name: 'Assistant Senior Patrol Leader',
+  },
+  {aliases: ['patrol leader', 'pl'], rank: 2, name: 'Patrol Leader'},
+  {aliases: ['assistant patrol leader', 'apl'], rank: 3, name: 'Assistant Patrol Leader'},
+  {aliases: ['quartermaster', 'qm'], rank: 4, name: 'Quartermaster'},
+]
 const UNRANKED = 9
 
 // Answers that mean "nothing to report" for the medical fields, compared lower-case with dots and spaces removed
@@ -240,8 +240,13 @@ function rosterPerson(row: ResponseRow, extras: Map<string, PatrolExtra[]>): Ros
   return person
 }
 
+function findRole(role: string) {
+  const alias = role.toLowerCase().replace(/\./g, '')
+  return ROLES.find(known => known.aliases.includes(alias))
+}
+
 function roleRank(role: string): number {
-  return ROLE_RANK[role.toLowerCase().replace(/\./g, '')] ?? UNRANKED
+  return findRole(role)?.rank ?? UNRANKED
 }
 
 function byRoleThenLastName(a: RosterPerson, b: RosterPerson): number {
@@ -304,20 +309,11 @@ function rosterGroups(): RosterGroup[] {
   return groups
 }
 
-// Per-printout header settings live in document properties so the next outing starts from the last one's.
-function readSettings<T extends object>(key: string, defaults: T): T {
-  const saved = PropertiesService.getDocumentProperties().getProperty(key)
-  return {...defaults, ...(saved ? JSON.parse(saved) : {})}
-}
-
-function writeSettings(key: string, settings: object) {
-  PropertiesService.getDocumentProperties().setProperty(key, JSON.stringify(settings))
-}
-
 const ROSTER_SETTINGS_KEY = 'rosterSettings'
 
-type RosterSettings = {title: string; subtitle: string; lead: string; showFlags: boolean}
+type RosterSettings = HeaderSettings & {lead: string; showFlags: boolean}
 
+// Spelled out rather than spread from DEFAULT_HEADER_SETTINGS: a top-level statement can't use another file's constant.
 const DEFAULT_ROSTER_SETTINGS: RosterSettings = {
   title: '',
   subtitle: '',

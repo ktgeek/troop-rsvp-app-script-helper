@@ -12,10 +12,6 @@ const DRIVING_LABELS: {[label: string]: string} = {
 
 const DRIVING_PRINT_SETTINGS_KEY = 'drivingPrintSettings'
 
-type DrivingPrintSettings = {title: string; subtitle: string}
-
-const DEFAULT_DRIVING_PRINT_SETTINGS: DrivingPrintSettings = {title: '', subtitle: ''}
-
 type Car = {
   driver: string
   // The scout whose parent drives, when the form gave no driver name; empty otherwise.
@@ -111,18 +107,18 @@ function showDrivingPrint() {
 }
 
 // Called from DrivingPrintDialog.html via google.script.run.
-function getDrivingPrintPage(): {pages: DrivingPage[]; settings: DrivingPrintSettings} {
+function getDrivingPrintPage(): {pages: DrivingPage[]; settings: HeaderSettings} {
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets().filter(isDrivingSheet)
   if (sheets.length === 0) {
     throw new Error('No Driving sheet found. Run "create driving sheet" first.')
   }
   return {
     pages: sheets.map(drivingPage),
-    settings: readSettings(DRIVING_PRINT_SETTINGS_KEY, DEFAULT_DRIVING_PRINT_SETTINGS),
+    settings: readSettings(DRIVING_PRINT_SETTINGS_KEY, DEFAULT_HEADER_SETTINGS),
   }
 }
 
 // Called from DrivingPrintDialog.html via google.script.run.
-function saveDrivingPrintSettings(settings: DrivingPrintSettings) {
+function saveDrivingPrintSettings(settings: HeaderSettings) {
   writeSettings(DRIVING_PRINT_SETTINGS_KEY, settings)
 }
