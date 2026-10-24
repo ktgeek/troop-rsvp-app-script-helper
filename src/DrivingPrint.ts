@@ -18,6 +18,8 @@ const DEFAULT_DRIVING_PRINT_SETTINGS: DrivingPrintSettings = {title: '', subtitl
 
 type Car = {
   driver: string
+  // The scout whose parent drives, when the form gave no driver name; empty otherwise.
+  parentOf: string
   // Empty when the driver drives both ways.
   label: string
   // Scout seats, including the driver's own scout (the form's count plus one); null when the header has no number.
@@ -49,6 +51,22 @@ function parseDriverHeader(header: string): {driver: string; label: string; seat
   }
 }
 
+// Checkbox cells read "FALSE" when unchecked; every other non-empty cell is a mark.
+function isMarked(cell: string): boolean {
+  const mark = cleanText(cell).toUpperCase()
+  return mark !== '' && mark !== 'FALSE'
+}
+
+// The generated Driving sheet leaves A1 blank, which tells it apart from a spare tab like "Driving notes".
+function isDrivingSheet(sheet: GoogleAppsScript.Spreadsheet.Sheet): boolean {
+  const name = sheet.getName()
+  return (
+    name.startsWith('Driving') &&
+    !OLD_DRIVING_SHEET.test(name) &&
+    cleanText(sheet.getRange(1, 1).getDisplayValue()) === ''
+  )
+}
+
 function drivingPage(sheet: GoogleAppsScript.Spreadsheet.Sheet): DrivingPage {
   const [headers, ...rows] = sheet.getDataRange().getDisplayValues()
   const scoutRows = rows.filter(row => cleanText(row[0]) !== '')
@@ -56,13 +74,24 @@ function drivingPage(sheet: GoogleAppsScript.Spreadsheet.Sheet): DrivingPage {
   const cars: Car[] = headers.flatMap((header, column) => {
     if (column === 0 || cleanText(header) === '') return []
     const passengers = scoutRows
-      .filter(row => cleanText(row[column]) !== '')
+      .filter(row => isMarked(row[column]))
       .map(row => cleanText(row[0]))
       .sort(compareByLastName)
-    const car = {...parseDriverHeader(header), passengers}
-    return [{...car, overBy: car.seats == null ? 0 : Math.max(0, passengers.length - car.seats)}]
+    const {driver, label, seats} = parseDriverHeader(header)
+    const unnamed = driver.endsWith(UNNAMED_DRIVER_MARK)
+    return [
+      {
+        driver: unnamed ? 'Driver not named' : driver,
+        parentOf: unnamed ? driver.slice(0, -UNNAMED_DRIVER_MARK.length).trim() : '',
+        label,
+        seats,
+        passengers,
+        overBy: seats == null ? 0 : Math.max(0, passengers.length - seats),
+      },
+    ]
   })
-  cars.sort((a, b) => compareByLastName(a.driver, b.driver))
+  // An unnamed driver sorts under the scout they are the parent of.
+  cars.sort((a, b) => compareByLastName(a.parentOf || a.driver, b.parentOf || b.driver))
 
   const carsPerScout = (name: string) => cars.filter(car => car.passengers.includes(name)).length
   const names = scoutRows.map(row => cleanText(row[0])).sort(compareByLastName)
@@ -83,11 +112,7 @@ function showDrivingPrint() {
 
 // Called from DrivingPrintDialog.html via google.script.run.
 function getDrivingPrintPage(): {pages: DrivingPage[]; settings: DrivingPrintSettings} {
-  const sheets = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheets()
-    .filter(
-      sheet => sheet.getName().startsWith('Driving') && !OLD_DRIVING_SHEET.test(sheet.getName()),
-    )
+  const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets().filter(isDrivingSheet)
   if (sheets.length === 0) {
     throw new Error('No Driving sheet found. Run "create driving sheet" first.')
   }

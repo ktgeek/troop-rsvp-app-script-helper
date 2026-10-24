@@ -57,7 +57,9 @@ spacing, no arrow-paren, 100 columns.
   out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats are the
   scout seats, which already count the driver's own scout (the form asks for seats not including them), so a car is over
   capacity above `seats`
-  scouts. Any non-empty cell counts as an assignment.
+  scouts. Any non-empty cell except a checkbox's "FALSE" counts as an assignment, and a tab
+  with text in A1 is not treated as a driving sheet. `UNNAMED_DRIVER_MARK` (`!!`, set in `Driving.ts`) marks a column
+  whose parent gave no driver name.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
   `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by
   global name. Register new ones in `createMenu`.

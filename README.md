@@ -84,7 +84,8 @@ no car yet or marked in more than one car, and a car with more scouts than seats
 
 If the trip needs different cars each way, duplicate the tab and rename it, e.g. `Driving to camp` and
 `Driving home`. Every tab whose name starts with `Driving` is printed, in tab order, each on its own page; the
-`Driving (old)` copies the generator sets aside are skipped.
+`Driving (old)` copies the generator sets aside are skipped, and so is any tab whose A1 cell is not blank. A column
+headed `Name!!` is a parent who drives but gave no driver name on the form; its card says "Driver not named".
 
 ## Development
 

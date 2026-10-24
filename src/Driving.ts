@@ -7,6 +7,10 @@ const DRIVERS: {[id: string]: string} = {
   'Tow from the campout only': 'tow from',
 }
 
+// Appended to a scout's name in the header when their parent drives but gave no driver name, so the column
+// stands out for a person to fix; the driving printout reads it back.
+const UNNAMED_DRIVER_MARK = '!!'
+
 function paddedArray(array: string[], len: number = 4): string[] {
   return Array.from({...array, length: len})
 }
@@ -37,7 +41,7 @@ function createDrivingAssignments() {
   const drivers: (string | null)[] = [
     null,
     ...adultsCamping.map(a => drivingText(a, a.scout)),
-    ...parentDrivers.map(a => drivingText(a, a.driverName || `${a.scout}!!`)),
+    ...parentDrivers.map(a => drivingText(a, a.driverName || `${a.scout}${UNNAMED_DRIVER_MARK}`)),
   ]
 
   const columns = drivers.length

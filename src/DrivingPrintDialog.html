@@ -121,6 +121,7 @@
         const meta = [
           c.seats == null ? 'Seats: ?' : `${c.seats} scout seats`,
           c.label,
+          c.parentOf && `Parent of ${c.parentOf}`,
         ].filter(Boolean).join('  |  ')
         const head = el('div', 'head', [el('div', 'driver', c.driver), el('div', 'meta', meta)])
         const body = c.passengers.length
