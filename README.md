@@ -39,7 +39,8 @@ A sheet has only one bound script, and Google has no way to look up its ID, so t
 - `npm run deploy -- --list` shows saved targets; add `--dry-run` to any deploy to print the commands without running
   them.
 
-Each deploy rewrites `.clasp.json` and pushes `appsscript.json`, so the target's timezone and runtime settings become
+Each deploy writes its own `.clasp.deploy.json` (leaving `.clasp.json`, which `npm run push` uses, alone) and pushes
+`appsscript.json`, so the target's timezone and runtime settings become
 this repo's. The first time a sheet runs the script, Google asks you to authorize it.
 
 ## Printing the roster

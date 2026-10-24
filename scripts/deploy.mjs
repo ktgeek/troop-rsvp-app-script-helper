@@ -16,7 +16,8 @@ import {fileURLToPath} from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TARGETS_FILE = process.env.TARGETS_FILE || join(ROOT, 'targets.json')
-const CLASP_FILE = join(ROOT, '.clasp.json')
+// Separate from .clasp.json, which `npm run push` uses, so deploying to a sheet never retargets plain pushes.
+const DEPLOY_CLASP_FILE = '.clasp.deploy.json'
 const ID_PATTERN = /^[\w-]{20,}$/
 
 const args = process.argv.slice(2)
@@ -63,9 +64,12 @@ function run(command, commandArgs) {
 }
 
 function writeClaspFile(scriptId) {
-  console.log(`writing .clasp.json for script ${scriptId}`)
+  console.log(`writing ${DEPLOY_CLASP_FILE} for script ${scriptId}`)
   if (!dryRun)
-    writeFileSync(CLASP_FILE, JSON.stringify({scriptId, rootDir: 'dist'}, null, 2) + '\n')
+    writeFileSync(
+      join(ROOT, DEPLOY_CLASP_FILE),
+      JSON.stringify({scriptId, rootDir: 'dist'}, null, 2) + '\n',
+    )
 }
 
 // Saved names win over ID parsing, so a long name can't be mistaken for a sheet ID.
@@ -141,7 +145,7 @@ function deploy(input, targets) {
   run('npm', ['run', 'build'])
   writeClaspFile(entry.scriptId)
   // -f because the pushed manifest (appsscript.json) should replace whatever the sheet's script currently has.
-  run('npx', ['clasp', 'push', '-f'])
+  run('npx', ['clasp', '-P', DEPLOY_CLASP_FILE, 'push', '-f'])
 }
 
 const targets = loadTargets()

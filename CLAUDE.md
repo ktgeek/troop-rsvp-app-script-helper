@@ -17,7 +17,8 @@ Source lives in `src/`, one file per feature (see Architecture).
   `rootDir: dist`, so pushing without building would deploy stale JS
 - `npm run deploy -- <sheet URL | sheet ID | saved name>` — build, then push to that sheet's bound script; see
   `README.md` for setup (`clasp login`) and usage. The sheet -> script ID map lives in gitignored `targets.json`,
-  `.clasp.json` is rewritten each run, and `appsscript.json` is pushed too. Re-running it is how an existing
+  each run writes a gitignored `.clasp.deploy.json` (never `.clasp.json`, which `npm run push` uses), and
+  `appsscript.json` is pushed too. Re-running it is how an existing
   deployment is updated. There is deliberately no auto-create for unknown sheets: `clasp create --type sheets`
   ignores `--parentId` and makes a new blank spreadsheet, so each sheet is recorded once with `--add`.
 - No test suite exists. The code needs the Apps Script runtime (`SpreadsheetApp`), so verify by pushing and running
