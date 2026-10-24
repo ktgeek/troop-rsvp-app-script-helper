@@ -12,5 +12,6 @@ function createMenu() {
     .addSeparator()
     .addItem('print roster', 'showRoster')
     .addItem('print patrol roster', 'showPatrolRoster')
+    .addItem('print driving sheet', 'showDrivingPrint')
     .addToUi()
 }

@@ -30,7 +30,7 @@ spacing, no arrow-paren, 100 columns.
 ## Architecture
 
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
-  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `PatrolRoster.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
+  `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `PatrolRoster.ts`, `DrivingPrint.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
   names and phones, drops "none" answers, merges campout patrol/role/notes from the `Patrols` sheet, and attaches `issues` (the
   VERIFY reasons) to each person. Scouts are grouped by campout patrol once
@@ -51,8 +51,12 @@ spacing, no arrow-paren, 100 columns.
   maps `rosterGroups()` to names, spelled-out PoRs (`ROLE_NAMES`), allergies + dietary on one line, and only the
   Patrols-sheet notes (`patrolNotes`), and `PatrolRosterDialog.html` renders it. Both dialogs keep their header fields
   through `readSettings`/`writeSettings`. The build copies every `src/*.html`.
+- The "print driving sheet" item (`showDrivingPrint`) prints the hand-marked `Driving` tabs, not form data: every tab
+  whose name starts with `Driving` except `Driving (old...)` becomes a `DrivingPage`. Driver headers are parsed back
+  out of the `Name (label: seats)` text `drivingText` wrote (`parseDriverHeader`); seats include the driver, so a car
+  is over capacity above `seats - 1` scouts. Any non-empty cell counts as an assignment.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
-  `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by global name.
+  `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by global name.
   Register new ones in `createMenu`.
 - `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
   and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement

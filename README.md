@@ -3,13 +3,14 @@
 A Google Apps Script (TypeScript) that attaches to the Troop 66 RSVP spreadsheet and turns the Google Form responses
 into working sheets. It adds a **Troop 66** menu:
 
-| Menu item            | What it does                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------- |
-| create patrol sheet  | Writes a `Patrols` sheet to fill in patrol assignments, roles, and notes           |
-| sort patrol sheet    | Re-sorts `Patrols` by Campout Patrol, then Patrol, then Scout's last name          |
-| create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats   |
-| print roster         | Opens the printable roster, one card per person, to print or save as a PDF         |
-| print patrol roster  | Opens a scout-facing roll call sheet by patrol: names, roles, dietary needs, notes |
+| Menu item            | What it does                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| create patrol sheet  | Writes a `Patrols` sheet to fill in patrol assignments, roles, and notes               |
+| sort patrol sheet    | Re-sorts `Patrols` by Campout Patrol, then Patrol, then Scout's last name              |
+| create driving sheet | Writes a `Driving` sheet: camping adults and parent drivers by scout, with seats       |
+| print roster         | Opens the printable roster, one card per person, to print or save as a PDF             |
+| print driving sheet  | Opens the printable car assignments, one card per car, from your marked Driving sheets |
+| print patrol roster  | Opens a scout-facing roll call sheet by patrol: names, roles, dietary needs, notes     |
 
 `Patrols` is sorted when created and again whenever you pick **sort patrol sheet**. Campout patrols sort as plain text,
 so blanks come first, then `1`, `2`, `3`, ..., and `A` (adults) last. Sorting rewrites the data rows' values, so
@@ -70,6 +71,17 @@ not the preview, and need a recent Chrome.
 members (adults included, under Adult Leaders) with a roll call checkbox, their PoR, allergies and dietary
 restrictions, and the notes from the `Patrols` sheet. It uses the same grouping as the leader roster. Notes are taken
 from the `Patrols` sheet only, so the wording you edit there is what scouts see. Print it the same way as the roster.
+
+## Printing the driving sheet
+
+Generate the `Driving` sheet, then assign scouts by hand: put any mark in a scout's row under the driver they ride
+with. **Troop 66 > print driving sheet** turns that into one card per car (driver, seats, to/from/towing label, and
+the scouts in it), with cars ordered by the driver's last name. A red box at the top of each page lists scouts with
+no car yet or marked in more than one car, and a car with more scouts than seats (minus the driver) is flagged red.
+
+If the trip needs different cars each way, duplicate the tab and rename it, e.g. `Driving to camp` and
+`Driving home`. Every tab whose name starts with `Driving` is printed, in tab order, each on its own page; the
+`Driving (old)` copies the generator sets aside are skipped.
 
 ## Development
 
