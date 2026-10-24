@@ -8,8 +8,10 @@ const ROLE_RANK: {[role: string]: number} = {
   aspl: 1,
   'patrol leader': 2,
   pl: 2,
-  quartermaster: 3,
-  qm: 3,
+  'assistant patrol leader': 3,
+  apl: 3,
+  quartermaster: 4,
+  qm: 4,
 }
 const UNRANKED = 9
 
@@ -20,7 +22,9 @@ const NONE_ANSWERS = ['', 'none', 'n/a', 'na', 'no', 'nope', 'nothing', '-']
 type RosterPerson = {
   name: string
   isAdult: boolean
+  // The patrol the scout signed up under, versus the campout patrol a leader assigned on the Patrols sheet.
   patrol: string
+  campoutPatrol: string
   role: string
   primaryName: string
   primaryPhone: string
@@ -36,7 +40,8 @@ type RosterPerson = {
   issues: string[]
 }
 
-type RosterGroup = {title: string; people: RosterPerson[]}
+// roles lists the group's PoRs, highest rank first, e.g. "PL Sam Doe".
+type RosterGroup = {title: string; roles: string[]; people: RosterPerson[]}
 
 function cleanText(text: string | undefined): string {
   return (text ?? '').replace(/\s+/g, ' ').trim()
@@ -137,7 +142,7 @@ function rosterIssues(person: RosterPerson): string[] {
   return issues
 }
 
-type PatrolExtra = {patrol: string; role: string; notes: string}
+type PatrolExtra = {patrol: string; campoutPatrol: string; role: string; notes: string}
 
 // Role and notes a leader has entered on the Patrols sheet, keyed by lower-cased scout name. A name can appear more
 // than once (a parent and child, say), so each key holds a list; see findPatrolExtra. The sheet is optional:
@@ -151,9 +156,13 @@ function patrolExtras(): Map<string, PatrolExtra[]> {
 
   const [headers, ...rows] = sheet.getDataRange().getDisplayValues()
   const normalizedHeaders = headers.map(normalizeHeader)
-  const [scout, patrol, role, notes] = ['Scout', 'Patrol', 'PoResponsibility', 'Notes'].map(
-    header => firstColumn(normalizedHeaders, [header], `Patrols sheet: ${header}`),
-  )
+  const [scout, patrol, campoutPatrol, role, notes] = [
+    'Scout',
+    'Patrol',
+    'Campout Patrol',
+    'PoResponsibility',
+    'Notes',
+  ].map(header => firstColumn(normalizedHeaders, [header], `Patrols sheet: ${header}`))
   const cell = (row: string[], column: number) => (column === -1 ? '' : row[column])
 
   for (const row of rows) {
@@ -162,6 +171,7 @@ function patrolExtras(): Map<string, PatrolExtra[]> {
       ...(extras.get(key) ?? []),
       {
         patrol: cleanText(cell(row, patrol)).toLowerCase(),
+        campoutPatrol: cleanText(cell(row, campoutPatrol)),
         role: cleanText(cell(row, role)),
         notes: emptyIfNone(cell(row, notes)),
       },
@@ -176,7 +186,7 @@ function findPatrolExtra(extras: Map<string, PatrolExtra[]>, row: ResponseRow): 
   const patrol = cleanText(row.patrol).toLowerCase()
   return (
     candidates.find(candidate => candidate.patrol === patrol) ??
-    candidates[0] ?? {patrol, role: '', notes: ''}
+    candidates[0] ?? {patrol, campoutPatrol: '', role: '', notes: ''}
   )
 }
 
@@ -209,6 +219,7 @@ function rosterPerson(row: ResponseRow, extras: Map<string, PatrolExtra[]>): Ros
     name: niceName(row.scout),
     isAdult,
     patrol: isAdult ? '' : cleanText(row.patrol),
+    campoutPatrol: extra.campoutPatrol,
     role: extra.role,
     primaryName,
     primaryPhone: formatPhone(row.primaryPhone),
@@ -234,7 +245,31 @@ function byRoleThenLastName(a: RosterPerson, b: RosterPerson): number {
   return roleRank(a.role) - roleRank(b.role) || compareByLastName(a.name, b.name)
 }
 
-// Adult leaders first, then one group per patrol, alphabetically.
+const ADULT_CAMPOUT_PATROL = 'a'
+
+// A purely numeric campout patrol ("2") reads better as "Patrol 2"; names ("Eagles") are used as typed.
+function campoutGroupTitle(campoutPatrol: string): string {
+  if (campoutPatrol === '') return 'No campout patrol'
+  return /^\d+$/.test(campoutPatrol) ? `Patrol ${campoutPatrol}` : campoutPatrol
+}
+
+// People are expected to be sorted already, so the roles come out highest rank first.
+function rosterGroup(title: string, people: RosterPerson[]): RosterGroup {
+  const roles = people.filter(person => person.role).map(person => `${person.role} ${person.name}`)
+  return {title, roles, people}
+}
+
+// Campout patrols only apply once a leader has assigned some. While the Patrols sheet is missing or holds nothing
+// but the adults' 'A', scouts stay in the patrols they signed up under.
+function hasCampoutAssignments(scouts: RosterPerson[]): boolean {
+  return scouts.some(
+    scout =>
+      scout.campoutPatrol !== '' && scout.campoutPatrol.toLowerCase() !== ADULT_CAMPOUT_PATROL,
+  )
+}
+
+// Adult leaders first, then one group per campout patrol (or per signed-up patrol, see hasCampoutAssignments),
+// in plain text order like the Patrols sheet, with scouts who have no campout patrol last.
 function rosterGroups(): RosterGroup[] {
   const extras = patrolExtras()
   const people = responseData()
@@ -244,14 +279,20 @@ function rosterGroups(): RosterGroup[] {
   const groups: RosterGroup[] = []
   const adults = people.filter(person => person.isAdult)
   if (adults.length > 0) {
-    groups.push({title: 'Adult Leaders', people: adults.sort(byRoleThenLastName)})
+    groups.push(rosterGroup('Adult Leaders', adults.sort(byRoleThenLastName)))
   }
 
   const scouts = people.filter(person => !person.isAdult)
-  const patrols = [...new Set(scouts.map(scout => scout.patrol))].sort()
+  const byCampout = hasCampoutAssignments(scouts)
+  const patrolOf = (scout: RosterPerson) => (byCampout ? scout.campoutPatrol : scout.patrol)
+  const titleOf = (patrol: string) =>
+    byCampout ? campoutGroupTitle(patrol) : patrol || 'No patrol'
+  const patrols = [...new Set(scouts.map(patrolOf))].sort((a, b) =>
+    a === '' || b === '' ? Number(a === '') - Number(b === '') : a.localeCompare(b),
+  )
   for (const patrol of patrols) {
-    const members = scouts.filter(scout => scout.patrol === patrol)
-    groups.push({title: patrol || 'No patrol', people: members.sort(byRoleThenLastName)})
+    const members = scouts.filter(scout => patrolOf(scout) === patrol)
+    groups.push(rosterGroup(titleOf(patrol), members.sort(byRoleThenLastName)))
   }
 
   return groups

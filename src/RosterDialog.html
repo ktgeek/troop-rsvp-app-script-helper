@@ -82,6 +82,7 @@
         font-weight: bold;
       }
       .band .count { font-size: 9px; color: var(--grey); }
+      .band .roles { font-size: 10px; font-weight: normal; color: var(--grey); }
       .group { margin-bottom: 6px; }
 
       .card { margin: 0 0 7px; border: 1px solid var(--green); }
@@ -229,6 +230,7 @@
 
         for (const group of groups) {
           const band = el('div', 'band', [group.title + ' ', el('span', 'count', `(${group.people.length})`)])
+          if (group.roles.length) band.append(el('div', 'roles', group.roles.join('  |  ')))
           const [first, ...rest] = group.people.map(person => card(person, showFlags))
           // Keep the band with its first card so it never sits alone at the bottom of a page.
           paper.append(el('div', 'group', [el('div', 'keep-together', [band, first]), ...rest]))

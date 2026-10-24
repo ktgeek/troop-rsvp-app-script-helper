@@ -54,6 +54,11 @@ this repo's. The first time a sheet runs the script, Google asks you to authoriz
 2. Fill in the outing title, date, and lead line (they're remembered for next time).
 3. Click **Print / Save as PDF**, choose **Save as PDF** as the destination, and turn on **Background graphics**.
 
+The roster groups scouts by the **Campout Patrol** you entered on the `Patrols` sheet (Adult Leaders first, numbered
+patrols shown as "Patrol 2"), with each group's roles from the **PoResponsibility** column in its heading. If no
+campout patrols are filled in beyond `A`, or there is no `Patrols` sheet, it groups by the patrol each scout signed up
+under.
+
 Leave **Show VERIFY flags** on for a working copy: cards with missing or suspicious contact and physician details get
 a yellow strip. Turn it off for the copy that goes in the binder. The footer and page numbers appear in the printout,
 not the preview, and need a recent Chrome.

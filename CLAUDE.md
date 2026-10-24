@@ -32,8 +32,10 @@ spacing, no arrow-paren, 100 columns.
 - Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
   `Patrols.ts` (`createPatrolListing`, `sortPatrolSheet`), `Driving.ts` (with `DRIVERS`), `Roster.ts`.
 - `Roster.ts` `rosterGroups()` turns responses into printable-roster groups (Adult Leaders, then patrols): it cleans
-  names and phones, drops "none" answers, merges role/notes from the `Patrols` sheet, and attaches `issues` (the
-  VERIFY reasons) to each person.
+  names and phones, drops "none" answers, merges campout patrol/role/notes from the `Patrols` sheet, and attaches `issues` (the
+  VERIFY reasons) to each person. Scouts are grouped by campout patrol once
+  any scout has one other than the adults' `A` (`hasCampoutAssignments`); otherwise, or with no `Patrols` sheet, by the
+  patrol they signed up under. Each group carries `roles`, its PoRs ranked, shown in the group band.
 - The "print roster" menu item (`showRoster`) opens `src/RosterDialog.html` in a modal dialog. The page fetches
   `getRosterPage()` (groups plus saved settings) via `google.script.run`, renders the cards with `textContent`
   only, and its Print button calls `window.print()`; the user picks "Save as PDF". Print layout (page breaks, footer,
