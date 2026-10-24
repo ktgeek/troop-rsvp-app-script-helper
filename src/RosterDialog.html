@@ -37,7 +37,20 @@
         background: var(--green);
       }
       .card .name { font-size: 15px; font-weight: bold; }
-      .card .badge { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+      .card .badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .card .por {
+        padding: 2px 8px;
+        color: #3b2300;
+        background: #f59e0b;
+        border-radius: 999px;
+      }
       .card .body { display: grid; grid-template-columns: 1fr 1fr; background: var(--tan); }
       .card .body > div { padding: 5px 8px; }
       .card .body > div + div { border-left: 0.5px solid var(--rule); }
@@ -100,7 +113,6 @@
 
       function card(person, showFlags) {
         const where = person.isAdult ? 'Adult leader' : person.patrol
-        const badge = [person.role, where].filter(Boolean).join('  |  ')
         const hasAlert = person.allergies || person.dietary || person.medications
 
         const left = el('div', hasAlert ? 'has-alert' : '', [
@@ -121,8 +133,9 @@
           body.append(el('div', 'strip flag', [el('b', '', 'VERIFY: '), person.issues.join('; ')]))
         }
 
+        const badge = el('div', 'badge', [person.role && el('span', 'por', person.role), where])
         return el('div', 'card', [
-          el('div', 'head', [el('div', 'name', person.name), el('div', 'badge', badge)]),
+          el('div', 'head', [el('div', 'name', person.name), badge]),
           body,
         ])
       }
