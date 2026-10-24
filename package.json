@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "prettier-format": "prettier --config .prettierrc Code.ts --write",
+    "prettier-format": "prettier --config .prettierrc \"src/*.ts\" --write",
     "lint": "eslint . --ext .ts",
     "build": "tsc",
     "push": "npm run build && clasp push"

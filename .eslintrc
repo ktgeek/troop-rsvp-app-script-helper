@@ -1,6 +1,7 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {"sourceType": "script"},
   "plugins": [
     "@typescript-eslint",
     "prettier"
@@ -12,6 +13,9 @@
     "prettier"
   ],
   "rules": {
+    // Apps Script files share one global scope, so top-level functions and constants are used across files
+    // (and by menu handlers resolved by name), which per-file analysis would flag as unused.
+    "@typescript-eslint/no-unused-vars": ["error", {"vars": "local"}],
     "no-console": 1,       // Means warning
     "prettier/prettier": 2 // Means error
   }

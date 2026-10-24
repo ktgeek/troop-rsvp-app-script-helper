@@ -4,11 +4,11 @@
     "lib": ["es2017"],
     "module": "none",
     "outDir": "dist",
-    "rootDir": ".",
+    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["Code.ts"]
+  "include": ["src/*.ts"]
 }

@@ -6,27 +6,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Google Apps Script (TypeScript) bound to the Troop 66 RSVP spreadsheet. It adds a "Troop 66" menu that turns the
 Google Form responses into printable/working sheets: patrols, driving assignments, and a printable roster.
-All logic lives in `Code.ts`.
+Source lives in `src/`, one file per feature (see Architecture).
 
 ## Commands
 
-- `npm run build` — `tsc`, transpiles `Code.ts` to `dist/Code.js` (`module: none`, ES2017, strict)
+- `npm run build` — `tsc`, transpiles `src/*.ts` to a flat `dist/*.js` (`module: none`, ES2017, strict)
 - `npm run lint` — ESLint (typescript-eslint + prettier as an error, `no-console` as a warning)
 - `npm run push` — build, then `clasp push` to deploy; `.clasp.json` has `rootDir: dist`, so pushing without
   building would deploy stale JS
 - No test suite exists. The code needs the Apps Script runtime (`SpreadsheetApp`), so verify by pushing and running
   from the sheet's menu.
 
-`npm run prettier-format` rewrites `Code.ts` in place. Prettier style: no semicolons, single quotes, no bracket
+`npm run prettier-format` rewrites `src/*.ts` in place. Prettier style: no semicolons, single quotes, no bracket
 spacing, no arrow-paren, 100 columns.
 
 ## Architecture
 
+- Files: `Code.ts` (`onOpen`, `createMenu`), `Responses.ts` (`ADULTS`, `FIELDS`, `responseData`, `createNamedSheet`),
+  `Patrols.ts`, `Driving.ts` (with `DRIVERS`), `Roster.ts`.
 - Menu entry points (`onOpen`, `createPatrolListing`, `createOutingListing`, `createDrivingAssignments`) are
-  top-level functions because Apps Script resolves menu handlers by global name. Each carries an
-  `eslint-disable no-unused-vars` comment, since nothing in the TS calls them. Add the same when adding a menu item,
-  and register the item in `createMenu`.
-- `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects.
+  top-level functions because Apps Script resolves menu handlers by global name. Register new ones in `createMenu`.
+- `module: none` is deliberate: no `import`/`export`, so everything stays in the global scope Apps Script expects,
+  and every pushed file shares it. Files may use each other's functions and constants, but no top-level statement
+  may evaluate something defined in another file (push order isn't guaranteed); reference them only inside
+  function bodies. ESLint is set to `sourceType: script` with `no-unused-vars` limited to local variables so
+  cross-file globals aren't flagged.
 - `responseData()` reads the `Form Responses 1` sheet (display values) and returns one object per response, keyed by
   the field names in `FIELDS` (e.g. `row.scout`, `row.patrol`, `row.seats`). Columns are found by matching row 1
   headers against each field's alias list (trimmed, case-insensitive), so column moves and added questions are
