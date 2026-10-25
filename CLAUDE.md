@@ -10,10 +10,12 @@ Source lives in `src/`, one file per feature (see Architecture).
 
 ## Commands
 
-- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (ES2022 target,
-  strict). The clear keeps renamed or deleted sources from leaving stale files that `clasp push` would upload.
-- `npm run lint` — ESLint 10 over `src` and `scripts` with the flat config in `eslint.config.mjs` (typescript-eslint +
-  prettier as an error, `no-console` as a warning). CI (`.github/workflows/ci.yml`) runs lint and build on PRs.
+- `npm run build` — clears `dist/`, then `tsc` transpiles `src/*.ts` to a flat `dist/*.js` (ES2022 target, strict), then
+  fails if any `dist/*.js` starts a line with `import`/`export` (Apps Script can't load ES modules). The clear keeps
+  renamed or deleted sources from leaving stale files that `clasp push` would upload.
+- `npm run lint` — ESLint 10 over the whole repo (`dist/` ignored) with the flat config in `eslint.config.mjs`
+  (typescript-eslint + prettier as an error, `no-console` as a warning). CI (`.github/workflows/ci.yml`) runs lint and
+  build on PRs.
 - `npm run push` — build, then `clasp push` to whatever script `.clasp.json` names; `.clasp.json` has
   `rootDir: dist`, so pushing without building would deploy stale JS
 - `npm run deploy -- <sheet URL | sheet ID | saved name>` — build, then push to that sheet's bound script; see
@@ -68,11 +70,12 @@ spacing, no arrow-paren, 100 columns.
 - Menu entry points (`onOpen`, `createPatrolListing`, `sortPatrolSheet`, `showRoster`, `showPatrolRoster`,
   `showDrivingPrint`, `createDrivingAssignments`) are top-level functions because Apps Script resolves menu handlers by
   global name. Register new ones in `createMenu`.
-- No `import`/`export` is deliberate (`module` is `es2015` only because TS 6 deprecated `module: none`): without them
-  every file is a script, so everything stays in the global scope Apps Script expects, and every pushed file shares
-  it. Files may use each other's functions and constants, but no top-level statement may evaluate something defined
-  in another file (push order isn't guaranteed); reference them only inside function bodies. ESLint is set to
-  `sourceType: script` with `no-unused-vars` limited to local variables so cross-file globals aren't flagged.
+- No `import`/`export` is deliberate (`module` is `es2015` only because TS 6 deprecated `module: none`; the build's grep
+  guard stands in for the error `none` used to give): without them every file is a script, so everything stays in the
+  global scope Apps Script expects, and every pushed file shares it. Files may use each other's functions and constants,
+  but no top-level statement may evaluate something defined in another file (push order isn't guaranteed); reference
+  them only inside function bodies. ESLint is set to `sourceType: script` with `no-unused-vars` limited to local
+  variables so cross-file globals aren't flagged.
 - `responseData()` reads the `Form Responses 1` sheet (display values) and returns one object per response, keyed by
   the field names in `FIELDS` (e.g. `row.scout`, `row.patrol`, `row.seats`). Columns are found by matching row 1
   headers against each field's alias list (trimmed, case-insensitive), so column moves and added questions are

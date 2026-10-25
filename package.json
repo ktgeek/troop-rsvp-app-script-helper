@@ -4,9 +4,9 @@
     "node": "^20.19.0 || ^22.13.0 || >=24"
   },
   "scripts": {
-    "prettier-format": "prettier \"src/*.ts\" --write",
-    "lint": "eslint src scripts",
-    "build": "rm -rf dist && tsc && cp appsscript.json src/*.html dist/",
+    "prettier-format": "prettier \"{src/*.ts,scripts/*.mjs,eslint.config.mjs}\" --write",
+    "lint": "eslint .",
+    "build": "rm -rf dist && tsc && ! grep -lE '^(import|export) ' dist/*.js && cp appsscript.json src/*.html dist/",
     "push": "npm run build && clasp push",
     "deploy": "node scripts/deploy.mjs"
   },
